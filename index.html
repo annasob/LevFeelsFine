@@ -1,0 +1,22 @@
+<script>
+  var run = function() {
+    var video = document.getElementById("video");
+    var image = document.getElementById("image");
+    image.style.display = "none";
+    image.src= "image.jpg"; // put in any image url
+    video.src = "video.ogv"; // put in any video url
+    video.play();
+    video.style.display = "inline";
+    video.addEventListener("timeupdate", (function() {
+      if (this.currentTime + 1 >= this.duration) {
+        video.style.display = "none";
+        image.style.display = "inline";
+      }
+    }), false);
+  };
+</script>
+Location: <input id="location" type="text" name="location" /><br />
+Twitter:  <input if="twitter" type="text" name="twitter" /><br />
+<button type="button" onClick="run();">Click Me!</button><br />
+<video style="display:none;height:200px;width:200px;" id="video"></video>
+<image style="display:none;height:200px;width:200px;" id="image"></image>
