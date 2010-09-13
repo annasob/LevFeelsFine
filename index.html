@@ -1,4 +1,6 @@
 <script>
+  var DURATION = 2; // in seconds
+  
   var run = function() {
     var video = document.getElementById("video");
     var image = document.getElementById("image");
@@ -7,10 +9,23 @@
     video.src = "video.ogv"; // put in any video url
     video.play();
     video.style.display = "inline";
+    var done = false;
+
     video.addEventListener("timeupdate", (function() {
-      if (this.currentTime + 1 >= this.duration) {
+      if (!done && this.currentTime + (this.duration - DURATION) >= this.duration) {
+        video.pause();
+        video.currentTime = 0;
         video.style.display = "none";
         image.style.display = "inline";
+        window.setTimeout((function() {
+          video.play();
+          video.style.display = "inline";
+          image.style.display = "none";
+          done = true;
+        }), DURATION + "000");
+      }
+      else if (done && this.currentTime + (this.duration - DURATION) >= this.duration) {
+        video.pause();
       }
     }), false);
   };
@@ -18,5 +33,5 @@
 Location: <input id="location" type="text" name="location" /><br />
 Twitter:  <input if="twitter" type="text" name="twitter" /><br />
 <button type="button" onClick="run();">Click Me!</button><br />
-<video style="display:none;height:200px;width:200px;" id="video"></video>
-<image style="display:none;height:200px;width:200px;" id="image"></image>
+<video style="display:none;height:270px;width:270px;" id="video"></video>
+<image style="display:none;height:270px;width:270px;" id="image"></image>
