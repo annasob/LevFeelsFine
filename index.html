@@ -1,37 +1,79 @@
+<script src="http://code.jquery.com/jquery.js"></script>
 <script>
   var DURATION = 2; // in seconds
+  var twitterData = "";
+  var locationData = "";
+  
+  var loadPage1 = function() {
+    document.getElementById("page2").style.display = "none";
+    document.getElementById("page1").style.display = "inline";
+  };
+    
+  var loadPage2 = function() {
+    document.getElementById("page1").style.display = "none";
+    document.getElementById("page2").style.display = "inline";
+  };
   
   var run = function() {
-    var video = document.getElementById("video");
+    twitterData = document.getElementById("twitter").value;
+    locationData = document.getElementById("location").value;
+    
+    loadPage2();
+    playVideo();
+  };
+
+  
+  var playVideo = function() {
+    var interval = 0;
+    var images = [];
+    var done = false;
+    var i = 0;
     var image = document.getElementById("image");
     image.style.display = "none";
-    image.src= "image.jpg"; // put in any image url
-    video.src = "video.ogv"; // put in any video url
-    video.play();
-    video.style.display = "inline";
-    var done = false;
-
-    video.addEventListener("timeupdate", (function() {
-      if (!done && this.currentTime + (this.duration - DURATION) >= this.duration) {
-        video.pause();
-        video.currentTime = 0;
-        video.style.display = "none";
-        image.style.display = "inline";
-        window.setTimeout((function() {
+    $.getJSON("http://api.flickr.com/services/feeds/photos_public.gne?tags=" + "sad" + "&lang=en-us&format=json&jsoncallback=?", function(data){
+      images = data.items;    
+      var video = document.getElementById("video");
+      var canvasCtx = document.getElementById("canvas").getContext("2d");
+        
+      var getIndex = function() {
+        if (i < images.length) {
+          return i++;
+        } else {
+          i = 1;
+          return 0;
+        }
+      };
+      
+      window.setInterval((function() {
+        if (interval < DURATION*1000) {
           video.play();
-          video.style.display = "inline";
-          image.style.display = "none";
-          done = true;
-        }), DURATION + "000");
-      }
-      else if (done && this.currentTime + (this.duration - DURATION) >= this.duration) {
-        video.pause();
-      }
-    }), false);
+          canvasCtx.drawImage(video, 0, 0, video.width, video.height);
+          if (!done) {
+            image.src = images[getIndex()].media.m.replace("_m.jpg", ".jpg");
+            done = true;
+          }
+        } else if (interval >= DURATION*1000 && interval < (DURATION*1000)*2) {
+          video.pause();
+          video.currentTime = 0;
+          canvasCtx.drawImage(image, 0, 0, video.width, video.height);
+        } else {
+          interval = 0;
+          done = false;
+        }
+        interval+=10;
+      }), 10);
+    });
+
   };
 </script>
-Location: <input id="location" type="text" name="location" /><br />
-Twitter:  <input if="twitter" type="text" name="twitter" /><br />
-<button type="button" onClick="run();">Click Me!</button><br />
-<video style="display:none;height:270px;width:270px;" id="video"></video>
-<image style="display:none;height:270px;width:270px;" id="image"></image>
+<div id="page1">
+  Location: <input id="location" type="text" value="ignore me - just click" name="location" /><br />
+  Twitter:  <input id="twitter" type="text" value="ignore me - just click" name="twitter" /><br />
+  <button type="button" onClick="run();">Click Me!</button><br />
+</div>
+<div id="page2">
+  <video src="video.ogv" style="display:none;" width="270" height="270" id="video"></video>
+  <img style="display:none;" width="270" height="270" id="image" />
+  <canvas id="canvas" width="270" height="270"></canvas>
+  <p id="write"></p>
+</div>
