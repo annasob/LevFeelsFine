@@ -1,22 +1,75 @@
-<script>
-  var run = function() {
-    var video = document.getElementById("video");
-    var image = document.getElementById("image");
-    image.style.display = "none";
-    image.src= "image.jpg"; // put in any image url
-    video.src = "video.ogv"; // put in any video url
-    video.play();
-    video.style.display = "inline";
-    video.addEventListener("timeupdate", (function() {
-      if (this.currentTime + 1 >= this.duration) {
-        video.style.display = "none";
-        image.style.display = "inline";
-      }
-    }), false);
-  };
-</script>
-Location: <input id="location" type="text" name="location" /><br />
-Twitter:  <input if="twitter" type="text" name="twitter" /><br />
-<button type="button" onClick="run();">Click Me!</button><br />
-<video style="display:none;height:200px;width:200px;" id="video"></video>
-<image style="display:none;height:200px;width:200px;" id="image"></image>
+<!doctype>
+<html>
+  <head>
+    <script src="http://code.jquery.com/jquery-latest.min.js"> 
+    </script>
+
+    <script>
+      var run = function() {
+        var video = document.getElementById("video");
+        var image = document.getElementById("image");
+        image.style.display = "none";
+        image.src= "image.jpg"; // put in any image url
+        video.src = "video.ogv"; // put in any video url
+        video.play();
+        video.style.display = "inline";
+        video.addEventListener("timeupdate", (function() {
+          if (this.currentTime + 1 >= this.duration) {
+            video.style.display = "none";
+            image.style.display = "inline";
+          }
+        }), false);
+      };
+    </script>
+
+    <script>      
+    var getTwitter = function () {        
+      var tweet = "";   //will contain string of tweets made by person        
+      var name = twitter.value; //twitter ID of person
+
+      /* Get JSON object */
+      $.getJSON('http://twitter.com/status/user_timeline/'+ name + '.json?count=15&callback=?', null, function(data) {
+        var i;                              // index
+        var datalength = data.length;
+        for (i = 0; i < datalength; i ++) { //Iterate through data[]
+          tweet += data[i].text;            /*Should have all tweets made by 
+                                              person after iteration*/
+        }
+
+        /* Declare var happy, sad, angry, and get a count of how many times each are mentioned */
+        var happy = 0 
+        var sad = 0; 
+        var angry = 0;
+        var emotion = "";
+        var searchArray = tweet.split(' ');
+
+        var searchArrayLength = searchArray.length;
+        for (i = 0; i < searchArrayLength; i++ ) {
+          if (searchArray[i] === "happy") { ++happy; }
+          else 
+            if (searchArray[i] === "sad") { ++sad; }
+          else
+            if (searchArray[i] === "angry") { ++angry; }
+        }
+        if (happy >= sad && happy >= angry) {
+          emotion = "happy";
+        }
+        else if (sad >= happy && sad >= angry) {
+          emotion = "sad";
+        }
+        else if (angry >= sad && angry >= happy) {
+          emotion = "angry";
+        }
+        return emotion;
+      });
+    }
+    </script>
+  </head>
+  <body>
+    Location: <input id="location" type="text" name="location" /><br />
+    Twitter:  <input if="twitter" type="text" name="twitter" /><br />
+    <button type="button" onClick="getTwitter();">Get Twitter emotion</button><br />
+    <button type="button" onClick="run();">Click Me!</button><br />
+    <video style="display:none;height:200px;width:200px;" id="video"></video>
+    <image style="display:none;height:200px;width:200px;" id="image"></image>
+  </body>
