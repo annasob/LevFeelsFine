@@ -13,6 +13,73 @@
         image.style.display = "inline";
       }
     }), false);
+    var location = document.getElementById("location").value;
+    var e=document.createElement('script');
+    e.setAttribute('src','http://pipes.yahoo.com/pipes/pipe.run?_id=0074f9866dcef3d752203f8cf708f491&_render=json&_callback=myfunction&weather='+ location);
+    document.body.appendChild(e);  
+  };
+  function myfunction(o) {
+    var background;
+    //make sure there was no parse error
+    if (o.value.items[0].weather.current_conditions.condition.data){
+      switch (o.value.items[0].weather.current_conditions.condition.data){
+        case "Partly Sunny": 
+        case "Sunny": 
+        case "Mostly Sunny":
+        case "Clear":
+          background = "images/clearDay.jpg"
+          background = "images/clearNight.jpg"
+          document.body.style.backgroundColor = "blue";
+          break;
+        case "Scattered Thunderstorms":
+        case "Storm":
+        case "Thunderstorm":
+          break;
+        case "Showers":
+        case "Scattered Showers":
+        case "Rain And Snow":
+        case "Chance Of Rain":
+        case "Rain":
+        case "Mist":
+        case "Drizzle":
+        case "Light Rain":
+          break;
+        case "Overcast":
+        case "Partly Cloudy": 
+        case "Dust":
+        case "Smoke":
+        case "Haze":
+          background = "images/claudyNight.jpg";
+          background = "images/claudyDay.jpg";
+          break;
+        case "Light Snow":
+        case "Freezing Drizzle":
+        case "Chance Of Snow":
+        case "Sleet":
+        case "Icy":
+          break;  
+        case "Fog":
+          background = "images/fogNight.jpg";
+          background = "images/fogDay.jpg";
+          document.body.style.backgroundColor = "gray";
+          break;  
+        case "Snow":
+        case "Flurries":
+          break;
+        case "Mostly Cloudy":
+        case "Chance Of Storm":
+        case "Cloudy":
+        case "Chance Of TStorm":
+          background = "images/veryClaudyDay.jpg";
+          background = "images/veryClaudyNight.jpg";
+          document.body.style.backgroundColor = "black";
+          break;
+      }
+      document.body.background = background;
+      document.body.style.backgroundRepeat = "no-repeat";
+      document.body.style.backgroundPosition = "top center";
+    }
+	}
   };
 </script>
 Location: <input id="location" type="text" name="location" /><br />
