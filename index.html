@@ -31,7 +31,6 @@
   function myfunction(o) {
     var background;
     //make sure there was no parse error
-    //2010-09-17 19:53:02 +0000
     var datetime = o.value.items[0].weather.forecast_information.current_date_time.data;
     var time =  /(\d\d)/.exec(/( \d\d:)/.exec(datetime));
     if (o.value.items[0].weather.current_conditions.condition.data){
@@ -103,7 +102,7 @@
         case "Chance Of Storm":
         case "Cloudy":
         case "Chance Of TStorm":
-        if( time[0] >= "20") {
+          if( time[0] >= "20") {
             background = "images/veryClaudyNight.jpg"
             document.body.style.backgroundColor = "rgb(32,32,32)";
           } else {
