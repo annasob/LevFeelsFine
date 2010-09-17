@@ -165,8 +165,96 @@
 
       alert(emotion);
       return emotion;
-    });
-  }
+    }); //end getJSON
+  } // end getTwitter
+  
+  var getHashtag = function () {
+      
+      var tweetsOnTopic = "";   //Will contain all tweets about a topic
+      var topic = hashtag.value;
+      var j;                    //Index counter 
+      
+      var maxNumTweets = 100;   /* Will contain max number of tweets to iterate through */
+
+      /* Get JSON for hashtag */
+      $.getJSON('http://search.twitter.com/search.json?q=%23' + topic + '&callback=?', null, function(data) {
+       
+        var datalength = data.length;
+
+        /* If there are more tweets than the maximum that this function will process,
+          set the limit to the maximum */
+
+        if (datalength < maxNumTweets) {
+          maxNumTweets = datalength;
+        }
+
+        /* for-loop iterates through results and adds it to tweetsOnTopic */
+        for (j = 0; j < maxNumTweets; j++) {
+          if (data.results[j] == undefined ) { }
+          else {
+            tweetsOnTopic += data.results[j].text;
+          }
+        }
+        /* Declare var happy, sad, angry, and get a count of how many times each are mentioned */
+        var happy = 0; 
+        var sad = 0; 
+        var angry = 0; 
+        var neutral = 0;                  /*For posts that are more object, like links*/
+        var mood = "neutral";             //Mood to be returned
+        var tweetArray = tweetsOnTopic.split(' ');
+        var internetRegex = /http:\/\/*/; /*Regex for the start of a url in tweet*/
+        var tweetArrayLength = tweetArray.length;
+
+
+        for (i = 0; i < tweetArrayLength; i++ ) {
+          if (tweetArray[i] === "happy" || tweetArray[i] === "excited" || 
+              tweetArray[i] === "woot" || tweetArray[i] === ":)" || 
+              tweetArray[i] === "wow" || tweetArray[i] === "awesome" ||
+              tweetArray[i] === "(:" || tweetArray[i] === "yay" ||
+              tweetArray[i] === ":D" || tweetArray[i] === "=)" ||
+              tweetArray[i] === "friday") { 
+            ++happy; 
+          }
+
+          else if (tweetArray[i] === "sad" || tweetArray[i] === ":(" ||
+                    tweetArray[i] === "bummed" || tweetArray[i] === "disappointed" ||
+                    tweetArray[i] === "sucks" || tweetArray[i] === ":'(" ||
+                    tweetArray[i] === "rip"  || tweetArray[i] === "r.i.p." || 
+                    tweetArray[i] === "died" || tweetArray[i] === "dead") { 
+            ++sad; 
+          }
+          else if (tweetArray[i] === "angry" || tweetArray[i] === "pissed" ||
+                    tweetArray[i] === "fucked" || tweetArray[i] === "hell" ||
+                    tweetArray[i] === "stinks" || tweetArray[i] === "upset" ||
+                    tweetArray[i] === "dammit" ||tweetArray[i] === "crud" ||
+                    tweetArray[i] === "damn" || tweetArray[i] === ":@") { 
+            ++angry; 
+          }
+          else if (tweetArray[i].match(internetRegex)) {
+             ++neutral;
+          }
+        }
+
+        if (happy >= sad && happy >= angry && happy >= neutral) {
+          emotion = "happy";
+        }
+        else if (sad >= happy && sad >= angry && sad >= neutral) {
+          emotion = "sad";
+        }
+        else if (angry >= sad && angry >= happy && angry >= neutral) {
+          emotion = "angry";
+        }
+        else if (neutral > angry && neutral > happy && neutral > sad) {
+          emotion = "middle";
+        }
+        
+        alert(mood);
+        //return mood;
+
+      }); //end getJSON
+      return mood;
+      } //end getHashtag
+  
   // skews an image on four x and y points.
   // make sure the image is using it's natural height and width (don't stretch it) or this function will break!
   CanvasRenderingContext2D.prototype.skew=function(src, co){
@@ -269,7 +357,9 @@
   <div id="page1">
     Location: <input id="location" type="text" value="ignore me - just click" name="location" /><br />
     Twitter:  <input id="twitter" type="text" value="ignore me - just click" name="twitter" /><br />
-    <button type="button" onClick="run();">Click Me!</button><br />
+      <button type="button" onClick="run();">Click Me!</button><br />
+    Hashtag: <input id="hashtag" type="text" name="hashtag"/>
+      <button type="button" onClick="getHashtag();">Get mood about topic</button><br />
   </div><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
   <div id="page2" style="position:relative;">
     <video src="http://scotland.proximity.on.ca/sdowne/lff/sad.ogg" style="display:none;" width="480" height="270" id="sad"></video>
