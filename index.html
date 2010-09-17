@@ -1,6 +1,6 @@
 <script src="http://code.jquery.com/jquery.js"></script>
 <script>
-  var DURATION = 2; // in seconds
+  var DURATION = 2;
   var twitterData = "";
   var locationData = "";
   
@@ -22,45 +22,96 @@
     playVideo();
   };
 
+  // skews an image on four x and y points.
+  // make sure the image is using it's natural height and width (don't stretch it) or this function will break!
+  CanvasRenderingContext2D.prototype.skew=function(src, co){
+    this.save();
+    var height=src.height,
+        width=src.width,
+        t=document.createElement('CANVAS').getContext('2d'),
+        leftSpace=Math.min(co[0][0], co[2][0]),
+        totalWidth=Math.max(co[1][0], co[3][0])-leftSpace,
+        topWidth=co[1][0]-co[0][0],
+        botWidth=co[3][0]-co[2][0],
+        leftChange=co[2][0]-co[0][0],
+        leftTop=co[0][1]-(co[1][1]-co[0][1])*(co[0][0]-leftSpace)/(co[1][0]-co[0][0]),
+        rightTop=co[1][1]+(co[1][1]-co[0][1])*(leftSpace+totalWidth-co[1][0])/(co[1][0]-co[0][0]),
+        leftBot=co[2][1]-(co[3][1]-co[2][1])*(co[2][0]-leftSpace)/(co[3][0]-co[2][0])-leftTop,
+        rightBot=co[3][1]+(co[3][1]-co[2][1])*(leftSpace+totalWidth-co[3][0])/(co[3][0]-co[2][0])-rightTop;
+    t.canvas.setAttribute('width', totalWidth);
+    t.canvas.setAttribute('height', height);
+    if (co[2][0]<co[0][0]) {
+      t.translate(co[0][0]-co[2][0], 0);
+    }
+    for (var i=0; i<height; i++) {
+      t.drawImage(src, 0, i, width, 1, leftChange*i/height, i, Math.abs((topWidth*(height-i)+botWidth*i)/height), 1);
+    }
+    for (var i=0; i<totalWidth; i++) {
+      this.drawImage(t.canvas, i, 0, 1, height, leftSpace+i, (leftTop*(totalWidth-i)+rightTop*i)/totalWidth, 1, (leftBot*(totalWidth-i)+rightBot*i)/totalWidth);
+    }
+    this.restore();
+  }
   
   var playVideo = function() {
-    var interval = 0;
-    var images = [];
-    var done = false;
-    var i = 0;
-    var image = document.getElementById("image");
-    image.style.display = "none";
-    $.getJSON("http://api.flickr.com/services/feeds/photos_public.gne?tags=" + "sad" + "&lang=en-us&format=json&jsoncallback=?", function(data){
-      images = data.items;    
-      var video = document.getElementById("video");
-      var canvasCtx = document.getElementById("canvas").getContext("2d");
-        
-      var getIndex = function() {
-        if (i < images.length) {
-          return i++;
+    var interval = 0,
+        images = [],
+        videoLoaded = false,
+        step = true,
+        image = document.getElementById("image"),
+        emotion = twitterData,
+        video = document.getElementById(emotion),
+        middle = document.getElementById("middle"),
+        canvasCtx = document.getElementById("canvas").getContext("2d"),
+        imageCanvas = document.getElementById("canvas2").getContext("2d");
+
+    var i = {
+      i: 0,
+      getIndex: function() {
+        if (this.i < images.length) {
+          return this.i++;
         } else {
-          i = 1;
+          this.i = 1;
           return 0;
         }
-      };
+      }
+    };
+
+    $.getJSON("http://api.flickr.com/services/feeds/photos_public.gne?tags=" + emotion + "&lang=en-us&format=json&jsoncallback=?", function(data){
+      images = data.items;
+      
+      document.getElementById("canvas").style.display = "inline"; 
       
       window.setInterval((function() {
-        if (interval < DURATION*1000) {
-          video.play();
-          canvasCtx.drawImage(video, 0, 0, video.width, video.height);
-          if (!done) {
-            image.src = images[getIndex()].media.m.replace("_m.jpg", ".jpg");
-            done = true;
+        if (step) {
+          if (!videoLoaded) {
+            videoLoaded = true;
+            middle.pause();
+            middle.currentTime = 0;
+            video.play();
+
+            image.src = images[i.getIndex()].media.m;
           }
-        } else if (interval >= DURATION*1000 && interval < (DURATION*1000)*2) {
-          video.pause();
-          video.currentTime = 0;
-          canvasCtx.drawImage(image, 0, 0, video.width, video.height);
+          if (video.currentTime <= DURATION) {
+            canvasCtx.drawImage(video, 0, 0, video.width, video.height);
+          } else {
+            step = false;
+            document.getElementById("canvas2").style.display = "inline";
+            imageCanvas.skew(image, [[129,5],[406,39],[96,157],[374,209]]);
+          }
         } else {
-          interval = 0;
-          done = false;
+          if (videoLoaded) {
+            videoLoaded = false;
+            video.pause();
+            video.currentTime = 0;
+            middle.play();
+          }
+          if (middle.currentTime <= DURATION) {
+            canvasCtx.drawImage(middle, 0, 0, video.width, video.height);
+          } else {
+            step = true;
+            document.getElementById("canvas2").style.display = "none";
+          }
         }
-        interval+=10;
       }), 10);
     });
 
@@ -72,8 +123,14 @@
   <button type="button" onClick="run();">Click Me!</button><br />
 </div>
 <div id="page2">
-  <video src="video.ogv" style="display:none;" width="270" height="270" id="video"></video>
-  <img style="display:none;" width="270" height="270" id="image" />
-  <canvas id="canvas" width="270" height="270"></canvas>
-  <p id="write"></p>
+  <video src="sad.ogv" style="display:none;" width="480" height="270" id="sad"></video>
+  <video src="happy.ogv" style="display:none;" width="480" height="270" id="happy"></video>
+  <video src="angry.ogv" style="display:none;" width="480" height="270" id="angry"></video>
+  <video src="neutral.ogv" style="display:none;" width="480" height="270" id="neutral"></video>
+  <video src="middle.ogv" style="display:none;" width="480" height="270" id="middle"></video>
+
+  <img style="display:none;" id="image" />
+  <canvas style="display:none;" id="canvas" width="480" height="270" ></canvas>
+  <canvas style="display:none;position:absolute;top:8px;left:8px;" id="canvas2" width="480" height="270" ></canvas>
 </div>
+
