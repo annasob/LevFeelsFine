@@ -17,7 +17,7 @@
   };
   
   var run = function() {
-    //twitterData = document.getElementById("twitter").value;
+    twitterData = document.getElementById("twitter").value;
     locationData = document.getElementById("location").value;
     
     // include the Google API script   
@@ -26,9 +26,7 @@
     e.setAttribute('src','http://pipes.yahoo.com/pipes/pipe.run?_id=0074f9866dcef3d752203f8cf708f491&_render=json&_callback=myfunction&weather='+ location);
     document.body.appendChild(e);  
     // get Twitter emotions
-    twitterData = getTwitter();
-    loadPage2();
-    playVideo();
+    getTwitter();
   };
   function myfunction(o) {
     var background;
@@ -108,11 +106,10 @@
       var happy = 0 
       var sad = 0; 
       var angry = 0;
-      var middle = 0;
       var neutral = 0; //For posts that are more objective, like links to url
-      var emotion = "";
+      var emotion = "neutral";
       var searchArray = tweet.split(' ');
-      var internetRegex = /http:\/\/*/; //Regex for the start of a url in a tweet
+      var internetRegex = /http:\/\/*/; //Regex for the start of a url in a tweet*/
       var searchArrayLength = searchArray.length;
 
       for (i = 0; i < searchArrayLength; i++ ) {
@@ -140,31 +137,22 @@
           { 
             ++angry; 
           }
-        else if (searchArray[i] === "middle" || searchArray[i] === "omg" ||
-                  searchArray[i].match(internetRegex) || searchArray[i] === "ok" ||
-                  searchArray[i] === "okay") 
-          { 
-            ++middle; 
-          }
         else if (searchArray[i].match(internetRegex)) {
             ++neutral;
         }
       }
-      if (happy >= sad && happy >= angry && happy >= middle) {
+      if (happy >= sad && happy >= angry && happy >= neutral) {
         emotion = "happy";
       }
-      else if (sad >= happy && sad >= angry && sad >= middle) {
+      else if (sad >= happy && sad >= angry && sad >= neutral) {
         emotion = "sad";
       }
-      else if (angry >= sad && angry >= happy && angry >= middle) {
+      else if (angry >= sad && angry >= happy && angry >= neutral) {
         emotion = "angry";
       }
-      else if (middle > angry && middle > happy && middle > sad) {
-        emotion = "middle";
-      }
-
-      alert(emotion);
-      return emotion;
+      twitterData = emotion;
+      loadPage2();
+      playVideo();
     });
   }
   // skews an image on four x and y points.
@@ -267,8 +255,8 @@
 
 <div style="text-align:center;">
   <div id="page1">
-    Location: <input id="location" type="text" value="ignore me - just click" name="location" /><br />
-    Twitter:  <input id="twitter" type="text" value="ignore me - just click" name="twitter" /><br />
+    Location: <input id="location" type="text" value="toronto" name="location" /><br />
+    Twitter:  <input id="twitter" type="text" value="StephenAtHome" name="twitter" /><br />
     <button type="button" onClick="run();">Click Me!</button><br />
   </div><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
   <div id="page2" style="position:relative;">
@@ -280,6 +268,6 @@
 
     <img style="display:none;" id="image" />
     <canvas style="display:none;" id="canvas" width="480" height="270" ></canvas>
-    <canvas style="display:none;position:absolute;" id="canvas2" width="480" height="270" ></canvas>
+    <canvas style="display:none;position:absolute;left:0px" id="canvas2" width="480" height="270" ></canvas>
   </div>
 </div></html>
