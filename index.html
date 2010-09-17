@@ -1,3 +1,4 @@
+
 <!doctype>
 <html>
   <head>
@@ -22,48 +23,86 @@
       };
     </script>
 
-    <script>      
-    var getTwitter = function () {        
-      var tweet = "";   //will contain string of tweets made by person        
-      var name = twitter.value; //twitter ID of person
+    <script>
+      var getTwitter = function () {
+        var tweet = "";           //will contain string of tweets made by person
+        var name = twitter.value; //twitter ID of person
+        var i;                    // index
 
-      /* Get JSON object */
-      $.getJSON('http://twitter.com/status/user_timeline/'+ name + '.json?count=15&callback=?', null, function(data) {
-        var i;                              // index
-        var datalength = data.length;
-        for (i = 0; i < datalength; i ++) { //Iterate through data[]
-          tweet += data[i].text;            /*Should have all tweets made by 
-                                              person after iteration*/
-        }
+        /* Get JSON object */
+        $.getJSON('http://twitter.com/status/user_timeline/'+ name + '.json?count=15&callback=?', null, function(data) {
+          var datalength = data.length;
+          for (i = 0; i < datalength; i ++) { //Iterate through data[]
+            tweet += data[i].text;            /*Should have all tweets made by person after iteration*/
+          }
 
-        /* Declare var happy, sad, angry, and get a count of how many times each are mentioned */
-        var happy = 0 
-        var sad = 0; 
-        var angry = 0;
-        var emotion = "";
-        var searchArray = tweet.split(' ');
+          /* Declare var happy, sad, angry, and get a count of how many times each are mentioned */
+          var happy = 0 
+          var sad = 0; 
+          var angry = 0;
+          var middle = 0;
+          var neutral = 0; //For posts that are more objective, like links to url
+          var emotion = "";
+          var searchArray = tweet.split(' ');
+          var internetRegex = /http:\/\/*/; //Regex for the start of a url in a tweet
+          var searchArrayLength = searchArray.length;
 
-        var searchArrayLength = searchArray.length;
-        for (i = 0; i < searchArrayLength; i++ ) {
-          if (searchArray[i] === "happy") { ++happy; }
-          else 
-            if (searchArray[i] === "sad") { ++sad; }
-          else
-            if (searchArray[i] === "angry") { ++angry; }
-        }
-        if (happy >= sad && happy >= angry) {
-          emotion = "happy";
-        }
-        else if (sad >= happy && sad >= angry) {
-          emotion = "sad";
-        }
-        else if (angry >= sad && angry >= happy) {
-          emotion = "angry";
-        }
-        return emotion;
-      });
-    }
+          for (i = 0; i < searchArrayLength; i++ ) {
+            if (searchArray[i] === "happy" || searchArray[i] === "excited" || 
+                searchArray[i] === "woot" || searchArray[i] === ":)" || 
+                searchArray[i] === "wow" || searchArray[i] === "awesome" ||
+                searchArray[i] === "(:" || searchArray[i] === "yay" ||
+                searchArray[i] === ":D" || searchArray[i] === "=)" ||
+                searchArray[i] === "friday") { 
+              ++happy; 
+            }
+            else if (searchArray[i] === "sad" || searchArray[i] === ":(" ||
+                      searchArray[i] === "bummed" || searchArray[i] === "disappointed" ||
+                      searchArray[i] === "sucks" || searchArray[i] === ":'(" ||
+                      searchArray[i] === "rip"  || searchArray[i] === "r.i.p." || 
+                      searchArray[i] === "died" || searchArray[i] === "dead") 
+              { 
+                ++sad; 
+              }
+            else if (searchArray[i] === "angry" || searchArray[i] === "pissed" ||
+                      searchArray[i] === "fucked" || searchArray[i] === "hell" ||
+                      searchArray[i] === "stinks" || searchArray[i] === "upset" ||
+                      searchArray[i] === "dammit" ||searchArray[i] === "crud" ||
+                      searchArray[i] === "damn" || searchArray[i] === ":@")
+              { 
+                ++angry; 
+              }
+            else if (searchArray[i] === "middle" || searchArray[i] === "omg" ||
+                      searchArray[i].match(internetRegex) || searchArray[i] === "ok"
+                      searchArray[i] === "okay") 
+              { 
+                ++middle; 
+              }
+            else if (searchArray[i].match(internetRegex)) {
+                ++neutral;
+            }
+          }
+          if (happy >= sad && happy >= angry && happy >= middle) {
+            emotion = "happy";
+          }
+          else if (sad >= happy && sad >= angry && sad >= middle) {
+            emotion = "sad";
+          }
+          else if (angry >= sad && angry >= happy && angry >= middle) {
+            emotion = "angry";
+          }
+          else if (middle > angry && middle > happy && middle > sad) {
+            emotion = "middle";
+          }
+
+          alert(emotion);
+          return emotion;
+        });
+      }
     </script>
+
+
+
   </head>
   <body>
     Location: <input id="location" type="text" name="location" /><br />
