@@ -18,17 +18,58 @@
   
   var run = function() {
     twitterData = document.getElementById("twitter").value;
-    locationData = document.getElementById("location").value;
     
-    // include the Google API script   
-    var location = document.getElementById("location").value;
-    var e=document.createElement('script');
-    e.setAttribute('src','http://pipes.yahoo.com/pipes/pipe.run?_id=0074f9866dcef3d752203f8cf708f491&_render=json&_callback=myfunction&weather='+ location);
-    document.body.appendChild(e);  
+    if (document.getElementById("checkmark").checked === true) {
+      // Request a position. We accept positions whose age is not
+      // greater than 10 minutes. If the User Agent does not have a
+      // fresh enough cached position object, it will automatically
+      // acquire a new one.
+      navigator.geolocation.getCurrentPosition(successCallback,
+                                               errorCallback,
+                                               {maximumAge:600000});
+
+    } else {
+      // include the Google API script   
+      locationData = document.getElementById("location").value;
+      get_position(locationData);
+    }
+         
     // get Twitter emotions
-    getTwitter();
+   getTwitter();
   };
-  function myfunction(o) {
+  
+  //navigator.geolocation.getCurrentPosition success function 
+  //get the geolocation city and region
+  function successCallback(position) {
+    get_position(position.address.city+","+position.address.region);
+  };
+  
+  //navigator.geolocation.getCurrentPosition error function 
+  function errorCallback(error) {
+    switch(error.code)  
+    {  
+      case error.PERMISSION_DENIED: alert("user did not share geolocation data");  
+      break;  
+
+      case error.POSITION_UNAVAILABLE: alert("could not detect current position");  
+      break;  
+
+      case error.TIMEOUT: alert("retrieving position timedout");  
+      break;  
+
+      default: alert("unknown error");  
+      break;  
+    }  
+  };
+  
+  //fetch google API weather that has been converted to JSON using yahoo pipes
+  function get_position(location) {
+      var e=document.createElement('script');
+      e.setAttribute('src','http://pipes.yahoo.com/pipes/pipe.run?_id=0074f9866dcef3d752203f8cf708f491&_render=json&_callback=getWeather&weather='+ location);
+      document.body.appendChild(e);  
+  };
+  
+  function getWeather(o) {
     var background;
     //make sure there was no parse error
     var datetime = o.value.items[0].weather.forecast_information.current_date_time.data;
@@ -281,7 +322,7 @@
 
 <div style="text-align:center;">
   <div id="page1">
-    Location: <input id="location" type="text" value="toronto" name="location" /><br />
+    Location: <input id="location" type="text" value="toronto" name="location" /><input type ="checkbox" id="checkmark" > use current location<br />
     Twitter:  <input id="twitter" type="text" value="StephenAtHome" name="twitter" /><br />
     <button type="button" onClick="run();">Click Me!</button><br />
   </div><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
