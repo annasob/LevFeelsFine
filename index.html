@@ -37,141 +37,7 @@
         process_data(data);
       });
     }
-    // get browser geolocation if the checkmark is checked and data from location input otherwise
-    if (document.getElementById("checkmark").checked === true) {
-      // Request a position. We accept positions whose age is not
-      // greater than 10 minutes. If the User Agent does not have a
-      // fresh enough cached position object, it will automatically
-      // acquire a new one.
-      navigator.geolocation.getCurrentPosition(successCallback,
-                                               errorCallback,
-                                               {maximumAge:600000});
-    } else {
-      // include the Google API script   
-      locationData = document.getElementById("location").value;
-      get_position(locationData);
-    }
   };
-  
-  //navigator.geolocation.getCurrentPosition success function 
-  //get the geolocation city and region
-  function successCallback(position) {
-    get_position(position.address.city+","+position.address.region);
-  };
-  
-  //navigator.geolocation.getCurrentPosition error function 
-  function errorCallback(error) {
-    switch(error.code)  
-    {  
-      case error.PERMISSION_DENIED: alert("user did not share geolocation data");  
-      break;  
-
-      case error.POSITION_UNAVAILABLE: alert("could not detect current position");  
-      break;  
-
-      case error.TIMEOUT: alert("retrieving position timedout");  
-      break;  
-
-      default: alert("unknown error");  
-      break;  
-    }  
-  };
-  
-  //fetch google API weather that has been converted to JSON using yahoo pipes
-  function get_position(location) {
-      var e=document.createElement('script');
-      e.setAttribute('src','http://pipes.yahoo.com/pipes/pipe.run?_id=0074f9866dcef3d752203f8cf708f491&_render=json&_callback=getWeather&weather='+ location);
-      document.body.appendChild(e);  
-  };
-  
-  function getWeather(o) {
-    var background;
-    //make sure there was no parse error
-    var datetime = o.value.items[0].weather.forecast_information.current_date_time.data;
-    var time =  /(\d\d)/.exec(/( \d\d:)/.exec(datetime));
-    if (o.value.items[0].weather.current_conditions.condition.data){
-      switch (o.value.items[0].weather.current_conditions.condition.data){
-        case "Partly Sunny": 
-        case "Sunny": 
-        case "Mostly Sunny":
-        case "Clear":
-          if( time[0] >= "20") {
-            background = "images/clearNight.jpg"
-            document.body.style.backgroundColor = "rbg(10, 10, 133)";
-          } else {
-            background = "images/clearDay.jpg"
-            document.body.style.backgroundColor = "blue";
-          }     
-          break;
-        case "Scattered Thunderstorms":
-        case "Storm":
-        case "Thunderstorm":
-          if( time[0] >= "20") {
-            background = "images/thunderstormNight.jpg"
-            document.body.style.backgroundColor = "black";
-          } else {
-            background = "images/thunderstormDay.jpg"
-            document.body.style.backgroundColor = "black";
-          }     
-          break;
-        case "Showers":
-        case "Scattered Showers":
-        case "Rain And Snow":
-        case "Chance Of Rain":
-        case "Rain":
-        case "Mist":
-        case "Drizzle":
-        case "Light Rain":
-          break;
-        case "Overcast":
-        case "Partly Cloudy": 
-        case "Dust":
-        case "Smoke":
-        case "Haze":
-          if( time[0] >= "20") {
-            background = "images/claudyNight.jpg"
-            document.body.style.backgroundColor = "rbg(10, 10, 133)";
-          } else {
-            background = "images/claudyDay.jpg"
-            document.body.style.backgroundColor = "blue";
-          }     
-          break;
-        case "Light Snow":
-        case "Freezing Drizzle":
-        case "Chance Of Snow":
-        case "Sleet":
-        case "Icy":
-          break;  
-        case "Fog":
-          if( time[0] >= "20") {
-            background = "images/fogNight.jpg"
-            document.body.style.backgroundColor = "rgb(32,32,32)";
-          } else {
-            background = "images/fogDay.jpg"
-            document.body.style.backgroundColor = "rgb(208,208,208)";
-          } 
-          break;  
-        case "Snow":
-        case "Flurries":
-          break;
-        case "Mostly Cloudy":
-        case "Chance Of Storm":
-        case "Cloudy":
-        case "Chance Of TStorm":
-          if( time[0] >= "20") {
-            background = "images/veryClaudyNight.jpg"
-            document.body.style.backgroundColor = "rgb(32,32,32)";
-          } else {
-            background = "images/veryClaudyDay.jpg"
-            document.body.style.backgroundColor = "rgb(208,208,208)";
-          } 
-          break;
-      }
-      document.body.background = background;
-      document.body.style.backgroundRepeat = "no-repeat";
-      document.body.style.backgroundPosition = "top center";
-    }
-	};
   /* This function will parse the JSON object for keywords and then return 
      the mood/emotion about the topic */
   function process_data(tweetData) {
@@ -339,7 +205,6 @@
 
 <div style="text-align:center;">
   <div id="page1">
-    Location: <input id="location" type="text" value="toronto" name="location" /><input type ="checkbox" id="checkmark" > use current location<br />
     Twitter:  <input id="twitter" type="text" value="@StephenAtHome" name="twitter" /><br />
     <button type="button" onClick="run();">Click Me!</button><br />
   </div><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
