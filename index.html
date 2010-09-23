@@ -99,7 +99,7 @@
     } else if (neutral > angry && neutral > happy && neutral > sad) {
       mood = "neutral";
     }
-    //alert(mood);
+    alert(mood);
     twitterData = mood;
     loadPage2();
     playVideo();
@@ -142,7 +142,7 @@
     var interval = 0,
         images = [],
         videoLoaded = false,
-        step = true,
+        step = 1,
         image = document.getElementById("image"),
         emotion = twitterData,
         video = document.getElementById(emotion),
@@ -172,7 +172,7 @@
       };
       document.getElementById("canvas").style.display = "inline";
       window.setInterval((function() {
-        if (step) {
+        if (step === 1) {
           if (!videoLoaded) {
             videoLoaded = true;
             middle.pause();
@@ -185,11 +185,11 @@
             canvasCtx.drawImage(video, 0, 0, video.width, video.height);
 
           } else {
-            step = false;
+            step ++;
             document.getElementById("canvas2").style.display = "inline";
             imageCanvas.skew(image, [[129,5],[406,39],[96,157],[374,209]]);
           }
-        } else {
+        } else if (spep === 2) {
           if (videoLoaded) {
             videoLoaded = false;
             video.pause();
@@ -201,9 +201,12 @@
             imageData = canvasCtx.getImageData(0, 0, 480, 270);
 
           } else {
-            step = true;
+            step ++;
+            run();
             document.getElementById("canvas2").style.display = "none";
           }
+        } else {
+          clearInterval();
         }
       }), 10);
     });
