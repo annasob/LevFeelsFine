@@ -3,45 +3,36 @@
 <script src="http://code.jquery.com/jquery-latest.min.js"></script>
 <script>
   var DURATION = 2;
-  var twitterData = "";
-  var locationData = "";
-  var searchTerm  = "";
-  var loadPage1 = function() {
-    document.getElementById("page2").style.display = "none";
-    document.getElementById("page1").style.display = "inline";
-  };
-    
-  var loadPage2 = function() {
-    document.getElementById("page1").style.display = "none";
-    document.getElementById("page2").style.display = "inline";
-  };
+  var searchTerm = "";
+  var twitterData  = "@StephenAtHome"; //"#LevFeels";
+  var mood = "fuckedup";
+  var getTwitter = function() {};
   
-  var run = function() {
-    // Get the hashtag or twitter ID entered in the textbox 
-    twitterData = document.getElementById("twitter").value;
-    // Trim the "@" or "#" from the start of the twitterData 
-    searchTerm  = twitterData.replace(/^#/, '').replace(/^@/,'');
-    // Get the JSON object for Twitter ID 
-    if (twitterData.match(/^@/)) {
-      $.getJSON('http://twitter.com/status/user_timeline/'+ searchTerm + '.json?count=5&callback=?', 
-          null, function(data) {
-
-        process_data(data);      
-      });   
-    } //end if (twitterData.match(/^@/)
-    // Get the JSON object  for the hashtag
-    else if (twitterData.match(/^#/)) {
-      $.getJSON('http://search.twitter.com/search.json?q=%23' + searchTerm + '&callback=?', 
-          null, function(data) {
-
-        process_data(data);
-      });
-    }
+  function init() {
+  
+    getTwitter = function getTwitter(){
+       // Trim the "@" or "#" from the start of the twitterData 
+      searchTerm  = twitterData.replace(/^#/, '').replace(/^@/,'');
+      // Get the JSON object for Twitter ID 
+      if (twitterData.match(/^@/)) {
+        $.getJSON('http://twitter.com/status/user_timeline/'+ searchTerm + '.json?count=5&callback=?', 
+            null, function(data) {
+          process_data(data);      
+        });   
+      } //end if (twitterData.match(/^@/)
+      // Get the JSON object  for the hashtag
+      else if (twitterData.match(/^#/)) {
+        $.getJSON('http://search.twitter.com/search.json?q=%23' + searchTerm + '&callback=?', 
+            null, function(data) {
+          process_data(data);
+        });
+      }  
+    };
+    var twitterInterval = setInterval(getTwitter, 10); 
   };
   /* This function will parse the JSON object for keywords and then return 
      the mood/emotion about the topic */
   function process_data(tweetData) {
-
     /* Will contain concatenation of all tweets */
     var tweet = "";
     var tweetsRetrieved = tweetData.results || tweetData;
@@ -53,14 +44,11 @@
         tweet += tweetsRetrieved[i].text;
       }
     }
-
-    /* Declare var happy, sad, angry, and neutral, and get a count of how 
+    /* Declare var happy, sad, and angry and get a count of how 
       often each words pertaining to these emotions are mentioned */
     var happy = 0;
     var sad = 0;
     var angry = 0;
-    var neutral = 0;        //For posts that are objective (ie. to links)
-    var mood = "neutral";   //Default mood is neutral
     var tweetArray = tweet.split(' ');
     var tweetArrayLength = tweetArray.length;
     var internetRegex = /http:\/\/*/;   //Regex for the start of a url*/
@@ -85,9 +73,7 @@
               tweetArray[i] === "dammit" ||tweetArray[i] === "crud" ||
               tweetArray[i] === "damn" || tweetArray[i] === ":@") { 
             ++angry; 
-      } else if (tweetArray[i].match(internetRegex)) {
-                ++neutral;
-      }
+      } 
     } //end for-loop
 
     if (happy >= sad && happy >= angry && happy >= neutral) {
@@ -96,15 +82,13 @@
       mood = "sad";
     } else if (angry >= sad && angry >= happy && angry >= neutral) {
       mood = "angry";
-    } else if (neutral > angry && neutral > happy && neutral > sad) {
-      mood = "neutral";
-    }
-    alert(mood);
+    } 
+    alert("in twitter:"+mood);
     twitterData = mood;
-    loadPage2();
-    playVideo();
+   // loadPage2();
+    //playVideo();
   } //end process_data
-
+alert("outside:" +mood);
   // skews an image on four x and y points.
   // make sure the image is using it's natural height and width (don't stretch it) or this function will break!
   CanvasRenderingContext2D.prototype.skew=function(src, co){
@@ -211,14 +195,13 @@
       }), 10);
     });
   };
+  
+// Call ready event when DOM is loaded
+addEventListener('DOMContentLoaded', function(){ init(); }, false);
 </script>
 </head>
 
 <div style="text-align:center;">
-  <div id="page1">
-    Twitter:  <input id="twitter" type="text" value="@StephenAtHome" name="twitter" /><br />
-    <button type="button" onClick="run();">Click Me!</button><br />
-  </div>
   <div id="page2" style="position:relative;">
     <video src="http://scotland.proximity.on.ca/sdowne/lff/sad.ogg" style="display:none;" width="480" height="270" id="sad"></video>
     <video src="http://scotland.proximity.on.ca/sdowne/lff/happy.ogg" style="display:none;" width="480" height="270" id="happy"></video>
