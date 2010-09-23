@@ -148,8 +148,7 @@
         video = document.getElementById(emotion),
         middle = document.getElementById("middle"),
         canvasCtx = document.getElementById("canvas").getContext("2d"),
-        imageCanvas = document.getElementById("canvas2").getContext("2d"),
-        imageData;
+        imageCanvas = document.getElementById("canvas2").getContext("2d");
 
     var i = {
       i: 0,
@@ -184,22 +183,7 @@
           }
           if (video.currentTime <= DURATION) {
             canvasCtx.drawImage(video, 0, 0, video.width, video.height);
-            imageData = canvasCtx.getImageData(0, 0, 480, 270);
-            for (var ia = 0; ia < imageData.data.length; ia += 4) {
-              if (emotion === "angry") {
-                imageData.data[ia  ] = 255; // red
-                //imageData.data[ia+1] = 255; // green
-                //imageData.data[ia+2] = 255; // blue
-              } else if (emotion === "sad") {
-                //imageData.data[ia  ] = 255; // red
-                //imageData.data[ia+1] = 255; // green
-                imageData.data[ia+2] = 255; // blue
-              } else if (emotion === "happy") {
 
-              }
-            }
-            canvasCtx.putImageData(imageData, 0, 0);
-            
           } else {
             step = false;
             document.getElementById("canvas2").style.display = "inline";
@@ -215,20 +199,7 @@
           if (middle.currentTime <= DURATION) {
             canvasCtx.drawImage(middle, 0, 0, video.width, video.height);
             imageData = canvasCtx.getImageData(0, 0, 480, 270);
-            for (var ia = 0; ia < imageData.data.length; ia += 4) {
-              if (emotion === "angry") {
-                imageData.data[ia  ] = 255; // red
-                //imageData.data[ia+1] = 255; // green
-                //imageData.data[ia+2] = 255; // blue
-              } else if (emotion === "sad") {
-                //imageData.data[ia  ] = 255; // red
-                //imageData.data[ia+1] = 255; // green
-                imageData.data[ia+2] = 255; // blue
-              } else if (emotion === "happy") {
-                
-              }
-            }
-            canvasCtx.putImageData(imageData, 0, 0);
+
           } else {
             step = true;
             document.getElementById("canvas2").style.display = "none";
@@ -246,11 +217,11 @@
     <button type="button" onClick="run();">Click Me!</button><br />
   </div>
   <div id="page2" style="position:relative;">
-    <video src="sad.ogg" style="display:none;" width="480" height="270" id="sad"></video>
-    <video src="happy.ogg" style="display:none;" width="480" height="270" id="happy"></video>
-    <video src="angry.ogg" style="display:none;" width="480" height="270" id="angry"></video>
-    <video src="neutral.ogg" style="display:none;" width="480" height="270" id="neutral"></video>
-    <video src="middle.ogg" style="display:none;" width="480" height="270" id="middle"></video>
+    <video src="http://scotland.proximity.on.ca/sdowne/lff/sad.ogg" style="display:none;" width="480" height="270" id="sad"></video>
+    <video src="http://scotland.proximity.on.ca/sdowne/lff/happy.ogg" style="display:none;" width="480" height="270" id="happy"></video>
+    <video src="http://scotland.proximity.on.ca/sdowne/lff/angry.ogg" style="display:none;" width="480" height="270" id="angry"></video>
+    <video src="http://scotland.proximity.on.ca/sdowne/lff/neutral.ogg" style="display:none;" width="480" height="270" id="neutral"></video>
+    <video src="http://scotland.proximity.on.ca/sdowne/lff/middle.ogg" style="display:none;" width="480" height="270" id="middle"></video>
 
     <img style="display:none;" id="image" />
     <canvas style="display:none;border-radius:10px;border-style:solid;border-width:15px;" id="canvas" width="480" height="270" ></canvas>
