@@ -5,90 +5,93 @@
   var DURATION = 2;
   var searchTerm = "";
   var twitterData  = "@StephenAtHome"; //"#LevFeels";
-  var mood = "nothing";
-  var getTwitter = function() {};
-  debug = document.getElementById('mood');
+  var emotion = "sad";
+  var debug;
+  var twitterInterval, videoInterval, videoFunctionInterval;
    
-  function init() {
-    debug.innerHTML = mood;
-    getTwitter = function getTwitter(){
-       // Trim the "@" or "#" from the start of the twitterData 
-      searchTerm  = twitterData.replace(/^#/, '').replace(/^@/,'');
-      // Get the JSON object for Twitter ID 
-      if (twitterData.match(/^@/)) {
-        $.getJSON('http://twitter.com/status/user_timeline/'+ searchTerm + '.json?count=5&callback=?', 
-            null, function(data) {
-            process_data(data);      
-        });   
-      } //end if (twitterData.match(/^@/)
-      // Get the JSON object  for the hashtag
-      else if (twitterData.match(/^#/)) {
-        $.getJSON('http://search.twitter.com/search.json?q=%23' + searchTerm + '&callback=?', 
-            null, function(data) {
-          process_data(data);
-        });
-      }  
-    };
-    var twitterInterval = setInterval(getTwitter, 10); 
-  };
-  /* This function will parse the JSON object for keywords and then return 
-     the mood/emotion about the topic */
-  function process_data(tweetData) {
-    /* Will contain concatenation of all tweets */
-    var tweet = "";
-    var tweetsRetrieved = tweetData.results || tweetData;
-    var tweetsRetrievedLength = tweetsRetrieved.length;
-    var maxNumTweets = (tweetsRetrievedLength < maxNumTweets) ? maxNumTweets : 100;
-
-    for (i = 0; i < maxNumTweets; i ++) {
-      if (tweetsRetrieved[i]) {
-        tweet += tweetsRetrieved[i].text;
-      }
-    }
-    /* Declare var happy, sad, and angry and get a count of how 
-      often each words pertaining to these emotions are mentioned */
-    var happy = 0;
-    var sad = 0;
-    var angry = 0;
-    var tweetArray = tweet.split(' ');
-    var tweetArrayLength = tweetArray.length;
-    var internetRegex = /http:\/\/*/;   //Regex for the start of a url*/
-
-    for (i = 0; i < tweetArrayLength; i++ ) {
-      if (tweetArray[i] === "happy" || tweetArray[i] === "excited" || 
-          tweetArray[i] === "woot" || tweetArray[i] === ":)" || 
-          tweetArray[i] === "wow" || tweetArray[i] === "awesome" ||
-          tweetArray[i] === "(:" || tweetArray[i] === "yay" ||
-          tweetArray[i] === ":D" || tweetArray[i] === "=)" ||
-          tweetArray[i] === "friday") { 
-            ++happy; 
-      } else if (tweetArray[i] === "sad" || tweetArray[i] === ":(" ||
-              tweetArray[i] === "bummed" || tweetArray[i] === "disappointed" ||
-              tweetArray[i] === "sucks" || tweetArray[i] === ":'(" ||
-              tweetArray[i] === "rip"  || tweetArray[i] === "r.i.p." || 
-              tweetArray[i] === "died" || tweetArray[i] === "dead") { 
-            ++sad; 
-      } else if (tweetArray[i] === "angry" || tweetArray[i] === "pissed" ||
-              tweetArray[i] === "fucked" || tweetArray[i] === "hell" ||
-              tweetArray[i] === "stinks" || tweetArray[i] === "upset" ||
-              tweetArray[i] === "dammit" ||tweetArray[i] === "crud" ||
-              tweetArray[i] === "damn" || tweetArray[i] === ":@") { 
-            ++angry; 
-      } 
-    } //end for-loop
-
-    if (happy >= sad && happy >= angry && happy >= neutral) {
-      mood = "happy";
-    } else if (sad >= happy && sad >= angry && sad >= neutral) {
-      mood = "sad";
-    } else if (angry >= sad && angry >= happy && angry >= neutral) {
-      mood = "angry";
-    } 
-    debug.innerHTML = mood;
-    //twitterData = mood;
-   // loadPage2();
-    //playVideo();
-  } //end process_data
+	 function init() {
+			debug = document.getElementById("mood");
+			debug.innerHTML = emotion;
+			//twitterInterval = setInterval(getTwitter, 6000); 
+			videoFunctionInterval = setInterval(playVideo, 7000); 
+		//	playVideo();
+	 }
+	 var getTwitter = function getTwitter(){
+			 // Trim the "@" or "#" from the start of the twitterData 
+			searchTerm  = twitterData.replace(/^#/, '').replace(/^@/,'');
+			// Get the JSON object for Twitter ID 
+			if (twitterData.match(/^@/)) {
+				$.getJSON('http://twitter.com/status/user_timeline/'+ searchTerm + '.json?count=5&callback=?', 
+						null, function(data) {
+						process_data(data);      
+				});   
+			} //end if (twitterData.match(/^@/)
+			// Get the JSON object  for the hashtag
+			else if (twitterData.match(/^#/)) {
+				$.getJSON('http://search.twitter.com/search.json?q=%23' + searchTerm + '&callback=?', 
+						null, function(data) {
+					process_data(data);
+				});
+			}  
+		};
+			
+	 
+		/* This function will parse the JSON object for keywords and then return 
+			 the mood/emotion about the topic */
+		function process_data(tweetData) {
+			/* Will contain concatenation of all tweets */
+			var tweet = "";
+			var tweetsRetrieved = tweetData.results || tweetData;
+			var tweetsRetrievedLength = tweetsRetrieved.length;
+			var maxNumTweets = (tweetsRetrievedLength < maxNumTweets) ? maxNumTweets : 100;
+	
+			for (i = 0; i < maxNumTweets; i ++) {
+				if (tweetsRetrieved[i]) {
+					tweet += tweetsRetrieved[i].text;
+				}
+			}
+			/* Declare var happy, sad, and angry and get a count of how 
+				often each words pertaining to these emotions are mentioned */
+			var happy = 0;
+			var sad = 0;
+			var angry = 0;
+			var tweetArray = tweet.split(' ');
+			var tweetArrayLength = tweetArray.length;
+			var internetRegex = /http:\/\/*/;   //Regex for the start of a url*/
+	
+			for (i = 0; i < tweetArrayLength; i++ ) {
+				if (tweetArray[i] === "happy" || tweetArray[i] === "excited" || 
+						tweetArray[i] === "woot" || tweetArray[i] === ":)" || 
+						tweetArray[i] === "wow" || tweetArray[i] === "awesome" ||
+						tweetArray[i] === "(:" || tweetArray[i] === "yay" ||
+						tweetArray[i] === ":D" || tweetArray[i] === "=)" ||
+						tweetArray[i] === "friday") { 
+							++happy; 
+				} else if (tweetArray[i] === "sad" || tweetArray[i] === ":(" ||
+								tweetArray[i] === "bummed" || tweetArray[i] === "disappointed" ||
+								tweetArray[i] === "sucks" || tweetArray[i] === ":'(" ||
+								tweetArray[i] === "rip"  || tweetArray[i] === "r.i.p." || 
+								tweetArray[i] === "died" || tweetArray[i] === "dead") { 
+							++sad; 
+				} else if (tweetArray[i] === "angry" || tweetArray[i] === "pissed" ||
+								tweetArray[i] === "fucked" || tweetArray[i] === "hell" ||
+								tweetArray[i] === "stinks" || tweetArray[i] === "upset" ||
+								tweetArray[i] === "dammit" ||tweetArray[i] === "crud" ||
+								tweetArray[i] === "damn" || tweetArray[i] === ":@") { 
+							++angry; 
+				} 
+			} //end for-loop
+	
+			if (happy >= sad && happy >= angry) {
+				mood = "happy";
+			} else if (sad >= happy && sad >= angry) {
+				mood = "sad";
+			} else if (angry >= sad && angry >= happy) {
+				mood = "angry";
+			} 
+			emotion = mood;
+			debug.innerHTML = emotion;
+		} //end process_data
 
   // skews an image on four x and y points.
   // make sure the image is using it's natural height and width (don't stretch it) or this function will break!
@@ -119,17 +122,13 @@
     }
     this.restore();
   }
-  
-
-
-  
   var playVideo = function() {
     var interval = 0,
         images = [],
         videoLoaded = false,
-        step = 1,
+        step = true,
+        counter = 0,
         image = document.getElementById("image"),
-        emotion = twitterData,
         video = document.getElementById(emotion),
         middle = document.getElementById("middle"),
         canvasCtx = document.getElementById("canvas").getContext("2d"),
@@ -156,13 +155,21 @@
         }
       };
       document.getElementById("canvas").style.display = "inline";
-      window.setInterval((function() {
-        if (step === 1) {
+      videoInterval = setInterval((function() {
+      	if (counter >= 3)
+      	{
+      		clearInterval(videoInterval);
+      		//alert("hello");
+      		document.getElementById(emotion).style.display = "none";
+      		document.getElementById("image").style.display = "none";
+      	}
+        if (step) {
           if (!videoLoaded) {
             videoLoaded = true;
             middle.pause();
             middle.currentTime = 0;
             video.play();
+            counter ++;
 
             image.src = images[i.getIndex()].media.m;
           }
@@ -170,12 +177,13 @@
             canvasCtx.drawImage(video, 0, 0, video.width, video.height);
 
           } else {
-            step ++;
+            step = false;
             document.getElementById("canvas2").style.display = "inline";
             imageCanvas.skew(image, [[129,5],[406,39],[96,157],[374,209]]);
           }
-        } else if (spep === 2) {
+        } else {
           if (videoLoaded) {
+          	counter ++;
             videoLoaded = false;
             video.pause();
             video.currentTime = 0;
@@ -183,15 +191,12 @@
           }
           if (middle.currentTime <= DURATION) {
             canvasCtx.drawImage(middle, 0, 0, video.width, video.height);
-            imageData = canvasCtx.getImageData(0, 0, 480, 270);
+            //imageData = canvasCtx.getImageData(0, 0, 480, 270);
 
           } else {
-            step ++;
-            run();
+            step = true;
             document.getElementById("canvas2").style.display = "none";
           }
-        } else {
-          clearInterval();
         }
       }), 10);
     });
@@ -201,22 +206,22 @@
 addEventListener('DOMContentLoaded', function(){ init(); }, false);
 </script>
 </head>
-<body>
-  <div id="mood" width="100" height="100"></div>
-  <div style="text-align:center;">
-   
-    <div id="page2" style="position:relative;">
-   
-      <video src="http://scotland.proximity.on.ca/sdowne/lff/sad.ogg" style="display:none;" width="480" height="270" id="sad"></video>
-      <video src="http://scotland.proximity.on.ca/sdowne/lff/happy.ogg" style="display:none;" width="480" height="270" id="happy"></video>
-      <video src="http://scotland.proximity.on.ca/sdowne/lff/angry.ogg" style="display:none;" width="480" height="270" id="angry"></video>
-      <video src="http://scotland.proximity.on.ca/sdowne/lff/neutral.ogg" style="display:none;" width="480" height="270" id="neutral"></video>
-      <video src="http://scotland.proximity.on.ca/sdowne/lff/middle.ogg" style="display:none;" width="480" height="270" id="middle"></video>
-
-      <img style="display:none;" id="image" />
-      <canvas style="display:none;border-radius:10px;border-style:solid;border-width:15px;" id="canvas" width="480" height="270" ></canvas>
-      <canvas style="display:none;position:absolute;left:0px;border-radius:10px;border-style:solid;border-width:15px;" id="canvas2" width="480" height="270" ></canvas>
-    </div>
+ <div style="text-align:center;">
+ <div id="mood"></div>
+  <div id="page1" style="display:none;">
+   Twitter:  <input id="twitter" type="text" value="@StephenAtHome" name="twitter" /><br />
+    <button type="button" onClick="run();">Click Me!</button><br />
   </div>
-</body>
+  <div id="page2" style="position:relative;display:inline;">
+    <video src="http://scotland.proximity.on.ca/sdowne/lff/sad.ogg" style="display:none;" width="480" height="270" id="sad"></video>
+    <video src="http://scotland.proximity.on.ca/sdowne/lff/happy.ogg" style="display:none;" width="480" height="270" id="happy"></video>
+    <video src="http://scotland.proximity.on.ca/sdowne/lff/angry.ogg" style="display:none;" width="480" height="270" id="angry"></video>
+    <video src="http://scotland.proximity.on.ca/sdowne/lff/neutral.ogg" style="display:none;" width="480" height="270" id="neutral"></video>
+    <video src="http://scotland.proximity.on.ca/sdowne/lff/middle.ogg" style="display:none;" width="480" height="270" id="middle"></video>
+
+    <img style="display:none;" id="image" />
+    <canvas style="display:none;border-radius:10px;border-style:solid;border-width:15px;" id="canvas" width="480" height="270" ></canvas>
+    <canvas style="display:none;position:absolute;left:0px;border-radius:10px;border-style:solid;border-width:15px;" id="canvas2" width="480" height="270" ></canvas>
+  </div>
+</div>
 </html>
