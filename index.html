@@ -29,10 +29,8 @@
 			debug.innerHTML = emotion;
 			//twitterInterval = setInterval(getTwitter, 6000); 
       getFlickrImages();
-			videoFunctionInterval = setInterval(playVideo, 28000); 
-      twitterInterval = setInterval(getEmotion, 26000); 
-		//	playVideo();
-	 }
+      //videoFunctionInterval = setInterval(playVideo, 28000);      
+	 };
    function getEmotion(){
       emotion = emotionsArray[iterator];
       debug.innerHTML = emotion;
@@ -41,14 +39,16 @@
       //getFlickrImages();
    };
    var getFlickrImages = function getFlickrImager() {
-    
+    //http://pastebin.mozilla.org/796046
+    image = document.getElementById("image");
     $.getJSON("http://api.flickr.com/services/feeds/photos_public.gne?tags=" + emotion + "&lang=en-us&format=json&jsoncallback=?", function(data){
       images = [];
-      images = data.items;            
+      images = data.items;       
       image.onload = function() {
         if (image.height > image.width) {
           image.src = images[i.getIndex()].media.m;
         }
+        
       };
    
     });
@@ -171,8 +171,7 @@
         middle = document.getElementById("middle"),
         canvasCtx = document.getElementById("canvas").getContext("2d"),
         imageCanvas = document.getElementById("canvas2").getContext("2d");
-   document.getElementById("canvas").style.display = "inline";
-   var tmp;
+        document.getElementById("canvas").style.display = "inline";
       videoInterval = setInterval((function() {
       	if (step) { // video one "face" is playing
           if (!videoLoaded) { // loads second "middle" video if it's not loaded
@@ -180,10 +179,7 @@
             middle.pause();
             middle.currentTime = 0;
             video.play();
-            //counter ++;
-            tmp = i.getIndex();
-            console.log("index" +tmp);
-            image.src = images[tmp].media.m;
+            image.src = images[i.getIndex()].media.m;
           }
           if (video.currentTime <= DURATION) { // draw frame of first "face" video
             canvasCtx.drawImage(video, 0, 0, video.width, video.height);
@@ -195,8 +191,11 @@
           }
         } else { // video two "middle" is playing
           if (videoLoaded) { // loads first "face" video if it's not loaded
-          	//counter ++;
-            videoLoaded = false;
+          	videoLoaded = false;
+            video.pause();
+            video.currentTime = 0;
+            // update video if emotion changed
+            video = document.getElementById(emotion);
             video.pause();
             video.currentTime = 0;
             middle.play();
@@ -217,7 +216,11 @@
   };
   
 // Call ready event when DOM is loaded
-addEventListener('DOMContentLoaded', function(){ init(); }, false);
+addEventListener('DOMContentLoaded', function(){ 
+  init(); 
+  document.getElementById("happy").addEventListener('loadeddata', function(){ playVideo(); }, false);
+  twitterInterval = setInterval(getEmotion, 22000); 
+}, false);
 </script>
 </head>
  <div style="text-align:center;">
