@@ -2,20 +2,58 @@
 <head>
 <script src="http://code.jquery.com/jquery-latest.min.js"></script>
 <script>
-  var DURATION = 2;
+  var DURATION = 8;
   var searchTerm = "";
   var twitterData  = "@StephenAtHome"; //"#LevFeels";
   var emotion = "sad";
   var debug;
+  var emotionsArray = new Array("happy","angry","sad");
+  var iterator = 0;
+  var images = [];
   var twitterInterval, videoInterval, videoFunctionInterval;
-   
+  // counter used for flickr get images functionality
+  var i = {
+      i: 0,
+      getIndex: function() {
+        if (this.i < images.length) {
+          return this.i++;
+        } else {
+          this.i = 1;
+          return 0;
+        }
+      }
+  
+  };
 	 function init() {
 			debug = document.getElementById("mood");
 			debug.innerHTML = emotion;
 			//twitterInterval = setInterval(getTwitter, 6000); 
-			videoFunctionInterval = setInterval(playVideo, 7000); 
+      getFlickrImages();
+			videoFunctionInterval = setInterval(playVideo, 28000); 
+      twitterInterval = setInterval(getEmotion, 26000); 
 		//	playVideo();
 	 }
+   function getEmotion(){
+      emotion = emotionsArray[iterator];
+      debug.innerHTML = emotion;
+      iterator ++;
+      if (iterator ===3){iterator = 0;}
+      //getFlickrImages();
+   };
+   var getFlickrImages = function getFlickrImager() {
+    
+    $.getJSON("http://api.flickr.com/services/feeds/photos_public.gne?tags=" + emotion + "&lang=en-us&format=json&jsoncallback=?", function(data){
+      images = [];
+      images = data.items;            
+      image.onload = function() {
+        if (image.height > image.width) {
+          image.src = images[i.getIndex()].media.m;
+        }
+      };
+   
+    });
+   
+   }
 	 var getTwitter = function getTwitter(){
 			 // Trim the "@" or "#" from the start of the twitterData 
 			searchTerm  = twitterData.replace(/^#/, '').replace(/^@/,'');
@@ -41,6 +79,7 @@
 		function process_data(tweetData) {
 			/* Will contain concatenation of all tweets */
 			var tweet = "";
+      var i;
 			var tweetsRetrieved = tweetData.results || tweetData;
 			var tweetsRetrievedLength = tweetsRetrieved.length;
 			var maxNumTweets = (tweetsRetrievedLength < maxNumTweets) ? maxNumTweets : 100;
@@ -124,8 +163,7 @@
   }
   var playVideo = function() {
     var interval = 0,
-        images = [],
-        videoLoaded = false,
+       videoLoaded = false,
         step = true,
         counter = 0,
         image = document.getElementById("image"),
@@ -133,73 +171,49 @@
         middle = document.getElementById("middle"),
         canvasCtx = document.getElementById("canvas").getContext("2d"),
         imageCanvas = document.getElementById("canvas2").getContext("2d");
-
-    var i = {
-      i: 0,
-      getIndex: function() {
-        if (this.i < images.length) {
-          return this.i++;
-        } else {
-          this.i = 1;
-          return 0;
-        }
-      }
-  
-    };
-
-    $.getJSON("http://api.flickr.com/services/feeds/photos_public.gne?tags=" + emotion + "&lang=en-us&format=json&jsoncallback=?", function(data){
-      images = data.items;            
-      image.onload = function() {
-        if (image.height > image.width) {
-          image.src = images[i.getIndex()].media.m;
-        }
-      };
-      document.getElementById("canvas").style.display = "inline";
+   document.getElementById("canvas").style.display = "inline";
+   var tmp;
       videoInterval = setInterval((function() {
-      	if (counter >= 3)
-      	{
-      		clearInterval(videoInterval);
-      		//alert("hello");
-      		document.getElementById(emotion).style.display = "none";
-      		document.getElementById("image").style.display = "none";
-      	}
-        if (step) {
-          if (!videoLoaded) {
+      	if (step) { // video one "face" is playing
+          if (!videoLoaded) { // loads second "middle" video if it's not loaded
             videoLoaded = true;
             middle.pause();
             middle.currentTime = 0;
             video.play();
-            counter ++;
-
-            image.src = images[i.getIndex()].media.m;
+            //counter ++;
+            tmp = i.getIndex();
+            console.log("index" +tmp);
+            image.src = images[tmp].media.m;
           }
-          if (video.currentTime <= DURATION) {
+          if (video.currentTime <= DURATION) { // draw frame of first "face" video
             canvasCtx.drawImage(video, 0, 0, video.width, video.height);
 
-          } else {
+          } else { // first "face" video is done, stop first video
             step = false;
             document.getElementById("canvas2").style.display = "inline";
             imageCanvas.skew(image, [[129,5],[406,39],[96,157],[374,209]]);
           }
-        } else {
-          if (videoLoaded) {
-          	counter ++;
+        } else { // video two "middle" is playing
+          if (videoLoaded) { // loads first "face" video if it's not loaded
+          	//counter ++;
             videoLoaded = false;
             video.pause();
             video.currentTime = 0;
             middle.play();
           }
-          if (middle.currentTime <= DURATION) {
+          if (middle.currentTime <= DURATION) { // updated frame for second "middle" video
             canvasCtx.drawImage(middle, 0, 0, video.width, video.height);
             //imageData = canvasCtx.getImageData(0, 0, 480, 270);
 
-          } else {
+          } else { // second "middle" video is done, stop second video
             step = true;
             document.getElementById("canvas2").style.display = "none";
           }
         }
       }), 10);
-    });
+    
+
+    
   };
   
 // Call ready event when DOM is loaded
