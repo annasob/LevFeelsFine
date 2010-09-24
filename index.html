@@ -10,7 +10,54 @@
   var emotionsArray = new Array("happy","angry","sad");
   var iterator = 0;
   var images = [];
+  var manager;
   var twitterInterval, videoInterval, videoFunctionInterval;
+  
+  var mediaManager = function() {
+    this.image = document.getElementById("image"),
+    this.middle = document.getElementById("middle"),
+    this.canvasCtx = document.getElementById("canvas").getContext("2d"),
+    this.video = document.getElementById(emotion),
+    this.imageCanvas = document.getElementById("canvas2").getContext("2d");
+    document.getElementById("canvas").style.display = "inline";
+    
+  };
+
+  mediaManager.prototype.playMainVideo = function(emotion) {
+    if (this.video.paused) {
+      // hide the second "middle" part of the video and the flickr image
+      document.getElementById("canvas2").style.display = "none";
+      document.getElementById("middle").style.display = "none";
+      this.video.play();
+      // put the video on the canvas
+      this.canvasCtx.drawImage(this.video, 0, 0, this.video.width, this.video.height);
+      // reset the second "middle" part of the video and pause it
+      this.middle.pause();
+      this.middle.currentTime = 0;
+      // get image ready for second "middle" part of the video       
+      this.image.src = images[i.getIndex()].media.m;
+      // skew the image
+      this.imageCanvas.skew(this.image, [[129,5],[406,39],[96,157],[374,209]]);
+    }
+  };
+  mediaManager.prototype.playMiddleVideo = function(emotion) {
+    if (!this.video.paused) {
+      // get rid of the first "face" video and get it ready to be played again
+      document.getElementById("canvas").style.display = "none";
+      this.video.pause();
+      this.video.currentTime = 0;
+      
+      // play the second "middle" part of the video
+      this.middle.play();
+      // put the "middle" video on the canvas
+      this.canvasCtx.drawImage(this.middle, 0, 0, this.video.width, this.video.height);
+      
+      // make the second "middle" part of the video and the flickr image applear
+      document.getElementById("canvas2").style.display = "inline";
+      document.getElementById("middle").style.display = "inline";   
+    }
+  };
+
   // counter used for flickr get images functionality
   var i = {
       i: 0,
@@ -25,11 +72,13 @@
   
   };
 	 function init() {
+      manager = new mediaManager();
 			debug = document.getElementById("mood");
 			debug.innerHTML = emotion;
 			//twitterInterval = setInterval(getTwitter, 6000); 
       getFlickrImages();
-			videoFunctionInterval = setInterval(playVideo, 28000); 
+      playVideo();
+			//videoFunctionInterval = setInterval(playVideo, 28000); 
       twitterInterval = setInterval(getEmotion, 26000); 
 		//	playVideo();
 	 }
@@ -166,48 +215,22 @@
        videoLoaded = false,
         step = true,
         counter = 0,
-        image = document.getElementById("image"),
-        video = document.getElementById(emotion),
-        middle = document.getElementById("middle"),
-        canvasCtx = document.getElementById("canvas").getContext("2d"),
-        imageCanvas = document.getElementById("canvas2").getContext("2d");
-   document.getElementById("canvas").style.display = "inline";
-   var tmp;
+        
+ 
       videoInterval = setInterval((function() {
       	if (step) { // video one "face" is playing
-          if (!videoLoaded) { // loads second "middle" video if it's not loaded
-            videoLoaded = true;
-            middle.pause();
-            middle.currentTime = 0;
-            video.play();
-            //counter ++;
-            tmp = i.getIndex();
-            console.log("index" +tmp);
-            image.src = images[tmp].media.m;
-          }
-          if (video.currentTime <= DURATION) { // draw frame of first "face" video
-            canvasCtx.drawImage(video, 0, 0, video.width, video.height);
-
+          if (manager.video.currentTime <= DURATION) { // draw frame of first "face" video
+            manager.playMainVideo();        
           } else { // first "face" video is done, stop first video
-            step = false;
-            document.getElementById("canvas2").style.display = "inline";
-            imageCanvas.skew(image, [[129,5],[406,39],[96,157],[374,209]]);
+            step = false;            
           }
         } else { // video two "middle" is playing
-          if (videoLoaded) { // loads first "face" video if it's not loaded
-          	//counter ++;
-            videoLoaded = false;
-            video.pause();
-            video.currentTime = 0;
-            middle.play();
-          }
-          if (middle.currentTime <= DURATION) { // updated frame for second "middle" video
-            canvasCtx.drawImage(middle, 0, 0, video.width, video.height);
+          if (manager.middle.currentTime <= DURATION) { // updated frame for second "middle" video
+            manager.playMiddleVideo();
             //imageData = canvasCtx.getImageData(0, 0, 480, 270);
-
           } else { // second "middle" video is done, stop second video
             step = true;
-            document.getElementById("canvas2").style.display = "none";
+            
           }
         }
       }), 10);
