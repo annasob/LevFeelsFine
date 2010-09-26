@@ -1,6 +1,10 @@
 <html>
 <head>
 <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+<script src="http://matrix.senecac.on.ca/~daoberes/json.js"></script>
+<!-- 
+pastebin: http://pastebin.com/yVySKsZH
+-->
 <script>
   var DURATION = 2;
   var twitterData = "";
@@ -16,94 +20,139 @@
     document.getElementById("page2").style.display = "inline";
   };
   
-  var run = function() {
-    // Get the hashtag or twitter ID entered in the textbox 
-    twitterData = document.getElementById("twitter").value;
-    // Trim the "@" or "#" from the start of the twitterData 
-    searchTerm  = twitterData.replace(/^#/, '').replace(/^@/,'');
-    // Get the JSON object for Twitter ID 
-    if (twitterData.match(/^@/)) {
-      $.getJSON('http://twitter.com/status/user_timeline/'+ searchTerm + '.json?count=5&callback=?', 
+  var run = function () {
+
+      /* Get the screen size */
+      screenX = screen.availWidth;
+      screenY = screen.availHeight;
+
+      /* Grab the mood to search for */
+      mood = twitter.value;
+      //alert(mood);
+      //mood = "sad";
+
+      /* Get tweets from twitter */
+      $.getJSON('http://search.twitter.com/search.json?q=%23' + mood + '&callback=?',
           null, function(data) {
 
-        process_data(data);      
-      });   
-    } //end if (twitterData.match(/^@/)
-    // Get the JSON object  for the hashtag
-    else if (twitterData.match(/^#/)) {
-      $.getJSON('http://search.twitter.com/search.json?q=%23' + searchTerm + '&callback=?', 
-          null, function(data) {
+        datalength = data.results.length;
+        //datalength = 4;
 
-        process_data(data);
+        /* Store tweets, twitterIds, twitter user pics, and tweet ID's 
+          in a JSON object/array */
+        jsonTweets = [];    //Declare an array
+
+        /* Iterate through JSON object and push Twitter pictures and tweets
+         onto another JSON object */
+        for (i = 0; i < datalength; i++) {
+          if (data.results[i].text) {
+            jsonTweets.push({ "tweetPic" : data.results[i].profile_image_url, 
+                              "tweet" : data.results[i].text, 
+                              "twitterId" : data.results[i].from_user,
+                              "id" : data.results[i].id });
+          }
+        }
+        nextTweetOrNone();
       });
-    }
-  };
-  /* This function will parse the JSON object for keywords and then return 
-     the mood/emotion about the topic */
-  function process_data(tweetData) {
-
-    /* Will contain concatenation of all tweets */
-    var tweet = "";
-    var tweetsRetrieved = tweetData.results || tweetData;
-    var tweetsRetrievedLength = tweetsRetrieved.length;
-    var maxNumTweets = (tweetsRetrievedLength < maxNumTweets) ? maxNumTweets : 100;
-
-    for (i = 0; i < maxNumTweets; i ++) {
-      if (tweetsRetrieved[i]) {
-        tweet += tweetsRetrieved[i].text;
-      }
-    }
-
-    /* Declare var happy, sad, angry, and neutral, and get a count of how 
-      often each words pertaining to these emotions are mentioned */
-    var happy = 0;
-    var sad = 0;
-    var angry = 0;
-    var neutral = 0;        //For posts that are objective (ie. to links)
-    var mood = "neutral";   //Default mood is neutral
-    var tweetArray = tweet.split(' ');
-    var tweetArrayLength = tweetArray.length;
-    var internetRegex = /http:\/\/*/;   //Regex for the start of a url*/
-
-    for (i = 0; i < tweetArrayLength; i++ ) {
-      if (tweetArray[i] === "happy" || tweetArray[i] === "excited" || 
-          tweetArray[i] === "woot" || tweetArray[i] === ":)" || 
-          tweetArray[i] === "wow" || tweetArray[i] === "awesome" ||
-          tweetArray[i] === "(:" || tweetArray[i] === "yay" ||
-          tweetArray[i] === ":D" || tweetArray[i] === "=)" ||
-          tweetArray[i] === "friday") { 
-            ++happy; 
-      } else if (tweetArray[i] === "sad" || tweetArray[i] === ":(" ||
-              tweetArray[i] === "bummed" || tweetArray[i] === "disappointed" ||
-              tweetArray[i] === "sucks" || tweetArray[i] === ":'(" ||
-              tweetArray[i] === "rip"  || tweetArray[i] === "r.i.p." || 
-              tweetArray[i] === "died" || tweetArray[i] === "dead") { 
-            ++sad; 
-      } else if (tweetArray[i] === "angry" || tweetArray[i] === "pissed" ||
-              tweetArray[i] === "fucked" || tweetArray[i] === "hell" ||
-              tweetArray[i] === "stinks" || tweetArray[i] === "upset" ||
-              tweetArray[i] === "dammit" ||tweetArray[i] === "crud" ||
-              tweetArray[i] === "damn" || tweetArray[i] === ":@") { 
-            ++angry; 
-      } else if (tweetArray[i].match(internetRegex)) {
-                ++neutral;
-      }
-    } //end for-loop
-
-    if (happy >= sad && happy >= angry && happy >= neutral) {
-      mood = "happy";
-    } else if (sad >= happy && sad >= angry && sad >= neutral) {
-      mood = "sad";
-    } else if (angry >= sad && angry >= happy && angry >= neutral) {
-      mood = "angry";
-    } else if (neutral > angry && neutral > happy && neutral > sad) {
-      mood = "neutral";
-    }
-    alert(mood);
-    twitterData = mood;
+      twitterData = mood;
     loadPage2();
     playVideo();
-  } //end process_data
+    }; //end run
+
+    var nextTweetOrNone = function () {
+      if (!jsonTweets.length) {
+        getTweets(); //"Activate" if page should be on an infinite loop
+        //return; /* "Activate" if only datalength amount tweets will been parsed */
+      }
+      setTimeout(printTweet, 5000);
+    };
+
+    var printTweet = function() {
+      /* pop tweets from the jsonTweets object */ 
+      var tweetToPrint = jsonTweets.pop();
+
+      /* Declare containers */
+      bdy = document.getElementById('normal'); // Gets div
+      /* container will contain div for tweetPic and tweet */
+      container = document.createElement('span');
+      containerWidth = 300;
+      containerHeight = 120;
+
+      tweetContainer = document.createElement('span');
+      picContainer = document.createElement('span');
+      picture = document.createElement('img');
+      var picHeight = 48;
+      var picWidth = 48;
+     
+      /* Generate random x and y coordinates */
+      var fitsInScreen = false;
+      while (!fitsInScreen) {
+        x = Math.round(Math.random()*(screenX));
+        y = Math.round(Math.random()*(screenY));
+        if ((x < screenX - containerWidth) && (y < screenY - containerWidth))
+        //if ((x < screenX) && (y < screenY))
+          fitsInScreen = true;
+      }
+
+      /* Declare colours for each of the hashtags */
+      if (mood == "angry") {
+        var colours = ["#EE9A49", "#CC3232", "#B22222", "#330000", "#8B7D7B",
+                        "#EED5D2", "#FF2400", "#FF6347", "#5E2612", "#E3170D"];
+      }
+      else if (mood == "sad") {
+        var colours = ["#525C65", "#4D4DFF", "#4D6FAC", "#42526C", "#7171C6",
+                        "#8968CD", "#104E8B", "#694489", "#0147FA", "#2F2F4F"];
+        
+      }
+      else if (mood == "happy") {
+        var colours = ["#698B22", "#FFE600", "#A2C93A", "#FFA824", "#FF8600",
+                        "#B13E0F", "#FF3030", "#00B2EE", "#499DF5", "#8968CD"];
+      }
+
+      /* The following will randomly determine the colour that the tweet is
+        to be printed in */      
+      var index = Math.floor(Math.random() * 10);
+      
+      /* Set attributes of the container */
+      $(container).css({'position': 'absolute', 
+                      'top' : y + 'px', 
+                      'left' : x +'px', 
+                      'width' : containerWidth + 'px', 
+                      'height' : containerHeight + 'px', 
+                      'color' : colours[index],
+                      'z-index' : '-1'});
+
+      /* Set attributes of the picture container */
+      $(picContainer).css({ 'float' : 'left',
+                      'margin-right' : '5px',
+                      'width' : picWidth + 'px',
+                      'height' : picHeight + 'px'});
+      /* Should picContainer have a z-index = 0? */
+
+      picture.src = tweetToPrint.tweetPic;
+      picture.style.width = 48;
+      picture.style.height = 48;
+      picContainer.appendChild(picture);
+      container.appendChild(picContainer);
+
+      /* Set attributes of tweetContainer container */
+      //$(tweetContainer).css({ });
+      
+      text = document.createTextNode( "@"+ tweetToPrint.twitterId + ": " + tweetToPrint.tweet);
+      tweetContainer.appendChild(text);
+      container.appendChild(tweetContainer);
+
+      /* Fade in to screen */
+      $(container).fadeIn(3000);
+      /* Reduce opacity */
+      $(container).fadeTo(1000, 0.30);
+
+      bdy.appendChild(container);
+
+      nextTweetOrNone();
+    }; //end printTweet
+
+    
 
   // skews an image on four x and y points.
   // make sure the image is using it's natural height and width (don't stretch it) or this function will break!
@@ -133,9 +182,7 @@
       this.drawImage(t.canvas, i, 0, 1, height, leftSpace+i, (leftTop*(totalWidth-i)+rightTop*i)/totalWidth, 1, (leftBot*(totalWidth-i)+rightBot*i)/totalWidth);
     }
     this.restore();
-  }
-  
-
+  };
 
   
   var playVideo = function() {
@@ -189,7 +236,7 @@
             document.getElementById("canvas2").style.display = "inline";
             imageCanvas.skew(image, [[129,5],[406,39],[96,157],[374,209]]);
           }
-        } else if (spep === 2) {
+        } else if (step === 2) {
           if (videoLoaded) {
             videoLoaded = false;
             video.pause();
@@ -198,7 +245,7 @@
           }
           if (middle.currentTime <= DURATION) {
             canvasCtx.drawImage(middle, 0, 0, video.width, video.height);
-            imageData = canvasCtx.getImageData(0, 0, 480, 270);
+            //imageData = canvasCtx.getImageData(0, 0, 480, 270);
 
           } else {
             step ++;
@@ -216,7 +263,7 @@
 
 <div style="text-align:center;">
   <div id="page1">
-    Twitter:  <input id="twitter" type="text" value="@StephenAtHome" name="twitter" /><br />
+    <input id="twitter" type="text" value="happy" name="twitter" /><br />
     <button type="button" onClick="run();">Click Me!</button><br />
   </div>
   <div id="page2" style="position:relative;">
@@ -229,6 +276,8 @@
     <img style="display:none;" id="image" />
     <canvas style="display:none;border-radius:10px;border-style:solid;border-width:15px;" id="canvas" width="480" height="270" ></canvas>
     <canvas style="display:none;position:absolute;left:0px;border-radius:10px;border-style:solid;border-width:15px;" id="canvas2" width="480" height="270" ></canvas>
+  </div>
+  <div id="normal">
   </div>
 </div>
 </html>
