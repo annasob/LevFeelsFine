@@ -3,14 +3,55 @@
 <script src="http://code.jquery.com/jquery-latest.min.js"></script>
 <script>
   var DURATION = 8;
+  var DEFAULTEMT = "happy";
   var searchTerm = "";
   var twitterData  = "@StephenAtHome"; //"#LevFeels";
-  var emotion = "sad";
+  var emotion = "happy";
   var debug;
-  var emotionsArray = new Array("happy","angry","sad");
+  var emotionsArray = new Array("angry","sad","happy");
   var iterator = 0;
-  var images = [];
+  var sadSong;
+  //sadSong.isPlaying;
+  
+  var happySong;
+  //sadSong.isPlaying;
+  var angrySong;
+  //sadSong.isPlaying;
+  var playingVideo = false;
   var twitterInterval, videoInterval, videoFunctionInterval;
+  var imgUrls = {
+    happyUrls : [],
+    sadUrls   : [],
+    angryUrls : []  
+  };
+  var images = {
+    happyImg : [],
+    sadImg   : [],
+    angryImg : [],
+    happyCounter :0,
+    sadCounter   :0,
+    angryCounter :0,
+  };
+  function fadeIn(audio) {
+    if ( audio.paused ) {
+      audio.volume = 0.1; 
+      audio.play();
+    }
+    // if the song's volume is below 1 put it up
+    if (audio.volume < 1) {
+   // console.log(audio.id+":"+audio.volume+"="+audio.volume < 1);
+      audio.volume = ((audio.volume * 2) >= 1) ? 1 : audio.volume * 2;
+      setTimeout(function(){fadeIn(audio)},1000);
+    }
+  };
+  function fadeOut(audio) {
+    // if the song's volume is above 0 lower it
+    if (audio.volume > 0.03) {
+      audio.volume = ((audio.volume /2) <= 0) ? 0 : audio.volume /2;
+      setTimeout(function(){fadeOut(audio)},1000);
+      //console.log(audio.id+":"+audio.volume);
+    } else { audio.currentTime = 0; audio.pause(); }//console.log(audio.id+" paused");}
+  };
   // counter used for flickr get images functionality
   var i = {
       i: 0,
@@ -24,13 +65,85 @@
       }
   
   };
-	 function init() {
-			debug = document.getElementById("mood");
-			debug.innerHTML = emotion;
-			//twitterInterval = setInterval(getTwitter, 6000); 
-      getFlickrImages();
-      //videoFunctionInterval = setInterval(playVideo, 28000);      
-	 };
+  var getJson = function(url) {
+    var head = document.getElementsByTagName("head")[0];
+    var script = document.createElement("script");
+    script.src = url;
+    head.insertBefore( script, head.firstChild );
+  };
+            
+    function init() {
+      debug = document.getElementById("mood");
+      debug.innerHTML = emotion;
+      happySong  = document.getElementById("happySong");
+      //happySong.isPlaying = true;
+      happySong.play();
+      sadSong  = document.getElementById("sadSong");
+      //sadSong.volume = 0;
+     // sadSong.play();
+      //sadSong.isPlaying = false;
+      angrySong  = document.getElementById("angrySong");
+      //angrySong.volume = 0;
+      //angrySong.play();
+      //angrySong.isPlaying = false;
+    };
+    this.getNextImageangry= function() { getNextImage('angry', imgUrls['angryUrls']); };
+    this.getNextImagesad = function() { getNextImage('sad', imgUrls['sadUrls']); };
+    this.getNextImagehappy = function() { getNextImage('happy', imgUrls['happyUrls']); };
+    
+    
+    var flickrCallback = function(o, emt) {
+      var arr = imgUrls[emt+"Urls"];
+      for (var i in o.items) {
+//        console.log("in callback:"+emotion);
+        arr.push((o.items[i].media.m).replace(/_m\.jpg$/, ".jpg"));
+      }
+      
+      getNextImage(emt, arr); //emotion);
+    };
+    
+    
+    
+    var getNextImage = function(emt, emotionArray) {
+      // if there is no more images to load return
+      //console.log("in next url length:"+imgUrls[emotion+"Urls"].length + " idx length:" +getNextImage.idx);
+      var url = emotionArray.pop();
+      if(!url) return;
+      // get the next url to load
+      console.log("getting images:"+ emt);
+ //     var nextUrl = imgUrls[emotion+"Urls"][getNextImage.idx],
+      cacheImageFunc = (function(emotion) {
+        var emt = emotion;
+        return function(url, img) {
+        console.log("adding image:"+emt);
+          images[emt+"Img"].push(img);
+          if( !playingVideo && emt === DEFAULTEMT){
+          console.log("playing video");
+            playingVideo = true;
+            playVideo();
+          }
+        };
+      })(emt);
+      //console.log("getNextImage" + emotion + ' ' + this['getNextImage'+emotion]);
+      setTimeout(function() { loadImage(url, cacheImageFunc, this['getNextImage' + emt]); }, 30);
+    };
+   // getNextImage(emt, arr); //emotion);
+//    getNextImage.idx = 0;
+    var loadImage = function(url, aCacheImage, aCallback) {
+      var img = document.createElement('img');
+
+      img.onload = (function(aCacheImage, aCallback) {
+        var cacheImage = aCacheImage,
+          callback = aCallback;
+        return function() {
+          cacheImage(this.src, this);
+          callback();
+        };
+      })(aCacheImage, aCallback);
+      img.src = url;
+    };
+    //};      
+            
    function getEmotion(){
       emotion = emotionsArray[iterator];
       debug.innerHTML = emotion;
@@ -165,7 +278,8 @@
     var interval = 0,
        videoLoaded = false,
         step = true,
-        counter = 0,
+        counter,
+        oldEmotion = "",
         image = document.getElementById("image"),
         video = document.getElementById(emotion),
         middle = document.getElementById("middle"),
@@ -179,7 +293,9 @@
             middle.pause();
             middle.currentTime = 0;
             video.play();
-            image.src = images[i.getIndex()].media.m;
+            counter = images[emotion+"Counter"];
+            image.src = images[emotion+"Img"][counter].src;
+            images[emotion+"Counter"]++;
           }
           if (video.currentTime <= DURATION) { // draw frame of first "face" video
             canvasCtx.drawImage(video, 0, 0, video.width, video.height);
@@ -194,11 +310,16 @@
           	videoLoaded = false;
             video.pause();
             video.currentTime = 0;
+            oldEmotion = video.id;
             // update video if emotion changed
             video = document.getElementById(emotion);
             video.pause();
             video.currentTime = 0;
             middle.play();
+            if (oldEmotion !== emotion) {
+              fadeOut(document.getElementById(oldEmotion+"Song"));
+              fadeIn(document.getElementById(emotion+"Song"));
+            }
           }
           if (middle.currentTime <= DURATION) { // updated frame for second "middle" video
             canvasCtx.drawImage(middle, 0, 0, video.width, video.height);
@@ -217,9 +338,16 @@
   
 // Call ready event when DOM is loaded
 addEventListener('DOMContentLoaded', function(){ 
-  init(); 
-  document.getElementById("happy").addEventListener('loadeddata', function(){ playVideo(); }, false);
-  twitterInterval = setInterval(getEmotion, 22000); 
+   
+  setTimeout(function() {
+    $.getJSON('http://api.flickr.com/services/feeds/photos_public.gne?tags=happy&lang=en-us&format=json&jsoncallback=?',null, function(data){ flickrCallback(data, "happy");});
+    $.getJSON('http://api.flickr.com/services/feeds/photos_public.gne?tags=sad&lang=en-us&format=json&jsoncallback=?',null, function(data){ flickrCallback(data, "sad");});
+    $.getJSON('http://api.flickr.com/services/feeds/photos_public.gne?tags=angry&lang=en-us&format=json&jsoncallback=?',null, function(data){ flickrCallback(data, "angry");});
+  }, 1000);
+  init();
+ // document.getElementById("happy").addEventListener('loadeddata', function(){ playVideo(); }, false);
+ //setTimeout(function(){playVideo();}, 40000);
+ twitterInterval = setInterval(getEmotion, (DURATION *3)*1000); 
 }, false);
 </script>
 </head>
@@ -239,6 +367,9 @@ addEventListener('DOMContentLoaded', function(){
     <img style="display:none;" id="image" />
     <canvas style="display:none;border-radius:10px;border-style:solid;border-width:15px;" id="canvas" width="480" height="270" ></canvas>
     <canvas style="display:none;position:absolute;left:0px;border-radius:10px;border-style:solid;border-width:15px;" id="canvas2" width="480" height="270" ></canvas>
+    <audio style="display:none;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/sad.ogg" id="sadSong" controls="none"></audio>
+    <audio style="display:none;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/happy.ogg" id="happySong" controls="none"></audio>
+    <audio style="display:none;" src="angry.ogg" id="angrySong" controls="none"></audio>
   </div>
 </div>
 </html>
