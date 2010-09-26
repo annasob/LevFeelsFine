@@ -12,13 +12,6 @@
   var debug;
   var emotionsArray = new Array("angry","sad","happy");
   var iterator = 0;
-  var sadSong;
-  //sadSong.isPlaying;
-  
-  var happySong;
-  //sadSong.isPlaying;
-  var angrySong;
-  //sadSong.isPlaying;
   var playingVideo = false;
   var twitterInterval, videoInterval, videoFunctionInterval;
   var imgUrls = {
@@ -35,157 +28,120 @@
     angryCounter :0,
   };
   function fadeIn(audio) {
-    if ( audio.paused ) {
+    // play the song if its not playing
+    if (audio.paused) {
       audio.volume = 0.1; 
       audio.play();
     }
-    // if the song's volume is below 1 put it up
+    // if the song's volume is below 1 put it up. 1 is max
     if (audio.volume < 1) {
-   // console.log(audio.id+":"+audio.volume+"="+audio.volume < 1);
+      // Ternary Operator if volume is set to > 1 browser throws error
       audio.volume = ((audio.volume * 2) >= 1) ? 1 : audio.volume * 2;
       setTimeout(function(){fadeIn(audio)},1000);
     }
   };
   function fadeOut(audio) {
-    // if the song's volume is above 0 lower it
+    // if the song's volume is above 0.03 lower it
+    // using 0.0 will take too long since /2 gets into floating points
     if (audio.volume > 0.03) {
       audio.volume = ((audio.volume /2) <= 0) ? 0 : audio.volume /2;
       setTimeout(function(){fadeOut(audio)},1000);
-      //console.log(audio.id+":"+audio.volume);
-    } else { audio.currentTime = 0; audio.pause(); }//console.log(audio.id+" paused");}
+    } else { audio.currentTime = 0; audio.pause(); }
   };
-  // counter used for flickr get images functionality
-  var i = {
-      i: 0,
-      getIndex: function() {
-        if (this.i < images.length) {
-          return this.i++;
-        } else {
-          this.i = 1;
-          return 0;
-        }
-      }
-  
-  };
-  var getJson = function(url) {
-    var head = document.getElementsByTagName("head")[0];
-    var script = document.createElement("script");
-    script.src = url;
-    head.insertBefore( script, head.firstChild );
-  };
-            
-    function init() {
-      debug = document.getElementById("mood");
-      debug.innerHTML = emotion;
-      happySong  = document.getElementById("happySong");
-      //happySong.isPlaying = true;
-      happySong.play();
-      sadSong  = document.getElementById("sadSong");
-      //sadSong.volume = 0;
-     // sadSong.play();
-      //sadSong.isPlaying = false;
-      angrySong  = document.getElementById("angrySong");
-      //angrySong.volume = 0;
-      //angrySong.play();
-      //angrySong.isPlaying = false;
-      /* Get the screen size */
-      screenX = screen.availWidth;
-      screenY = screen.availHeight;
-
-      /* set mood to default */
-      mood = DEFAULTEMT;
-      //alert(mood);
-      //mood = "sad";
-
-      /* Get tweets from twitter */
-      $.getJSON('http://search.twitter.com/search.json?q=%23' + mood + '&callback=?',
-          null, function(data) {
-
-        datalength = data.results.length;
-        //datalength = 4;
-
-        /* Store tweets, twitterIds, twitter user pics, and tweet ID's 
-          in a JSON object/array */
-        jsonTweets = [];    //Declare an array
-
-        /* Iterate through JSON object and push Twitter pictures and tweets
-         onto another JSON object */
-        for (i = 0; i < datalength; i++) {
-          if (data.results[i].text) {
-            jsonTweets.push({ "tweetPic" : data.results[i].profile_image_url, 
-                              "tweet" : data.results[i].text, 
-                              "twitterId" : data.results[i].from_user,
-                              "id" : data.results[i].id });
-          }
-        }
-        nextTweetOrNone();
-      });
-    };
-    this.getNextImageangry= function() { getNextImage('angry', imgUrls['angryUrls']); };
-    this.getNextImagesad = function() { getNextImage('sad', imgUrls['sadUrls']); };
-    this.getNextImagehappy = function() { getNextImage('happy', imgUrls['happyUrls']); };
-    
-    
-    var flickrCallback = function(o, emt) {
-      var arr = imgUrls[emt+"Urls"];
-      for (var i in o.items) {
-//        console.log("in callback:"+emotion);
-        arr.push((o.items[i].media.m).replace(/_m\.jpg$/, ".jpg"));
-      }
       
-      getNextImage(emt, arr); //emotion);
-    };
-    
-    
-    
-    var getNextImage = function(emt, emotionArray) {
-      // if there is no more images to load return
-      //console.log("in next url length:"+imgUrls[emotion+"Urls"].length + " idx length:" +getNextImage.idx);
-      var url = emotionArray.pop();
-      if(!url) return;
-      // get the next url to load
-      console.log("getting images:"+ emt);
- //     var nextUrl = imgUrls[emotion+"Urls"][getNextImage.idx],
-      cacheImageFunc = (function(emotion) {
-        var emt = emotion;
-        return function(url, img) {
-        console.log("adding image:"+emt);
-          images[emt+"Img"].push(img);
-          if( !playingVideo && emt === DEFAULTEMT){
-          console.log("playing video");
-            playingVideo = true;
-            playVideo();
-          }
-        };
-      })(emt);
-      //console.log("getNextImage" + emotion + ' ' + this['getNextImage'+emotion]);
-      setTimeout(function() { loadImage(url, cacheImageFunc, this['getNextImage' + emt]); }, 30);
-    };
-   // getNextImage(emt, arr); //emotion);
-//    getNextImage.idx = 0;
-    var loadImage = function(url, aCacheImage, aCallback) {
-      var img = document.createElement('img');
+  function init() {
+    debug = document.getElementById("mood");
+    debug.innerHTML = emotion;
+     
+    /* Get the screen size */
+    screenX = screen.availWidth;
+    screenY = screen.availHeight;
 
-      img.onload = (function(aCacheImage, aCallback) {
-        var cacheImage = aCacheImage,
-          callback = aCallback;
-        return function() {
-          cacheImage(this.src, this);
-          callback();
-        };
-      })(aCacheImage, aCallback);
-      img.src = url;
-    };
-    //};      
+    /* set mood to default */
+    mood = DEFAULTEMT;
+    
+    /* Get tweets from twitter */
+    $.getJSON('http://search.twitter.com/search.json?q=%23' + mood + '&callback=?',
+        null, function(data) {
+
+      datalength = data.results.length;
+      //datalength = 4;
+
+      /* Store tweets, twitterIds, twitter user pics, and tweet ID's 
+        in a JSON object/array */
+      jsonTweets = [];    //Declare an array
+
+      /* Iterate through JSON object and push Twitter pictures and tweets
+       onto another JSON object */
+      for (i = 0; i < datalength; i++) {
+        if (data.results[i].text) {
+          jsonTweets.push({ "tweetPic" : data.results[i].profile_image_url, 
+                            "tweet" : data.results[i].text, 
+                            "twitterId" : data.results[i].from_user,
+                            "id" : data.results[i].id });
+        }
+      }
+      nextTweetOrNone();
+    });
+  };
+    
+    
+  var flickrCallback = function(o, emt) {
+    var arr = imgUrls[emt+"Urls"];
+    for (var i in o.items) {
+      arr.push((o.items[i].media.m).replace(/_m\.jpg$/, ".jpg"));
+    } 
+    getNextImage(emt, arr); //emotion);
+  };
+    
+  // ugly hack to call the getNextImage function with the right parameters depending on the emotion/mood
+  this.getNextImageangry= function() { getNextImage('angry', imgUrls['angryUrls']); };
+  this.getNextImagesad = function() { getNextImage('sad', imgUrls['sadUrls']); };
+  this.getNextImagehappy = function() { getNextImage('happy', imgUrls['happyUrls']); };
+
+    
+  var getNextImage = function(emt, emotionArray) {
+    // get the next url to load
+    var url = emotionArray.pop();
+    if(!url) return;
+    
+    cacheImageFunc = (function(emotion) {
+      var emt = emotion;
+      return function(url, img) {
+      console.log("adding image:"+emt);
+        images[emt+"Img"].push(img);
+        // if any images of the default emotion are loaded play the video
+        if( !playingVideo && emt === DEFAULTEMT){
+        console.log("playing video");
+          playingVideo = true;
+          playVideo();
+          document.getElementById(DEFAULTEMT+"Song").play();
+        }
+      };
+    })(emt);
+    setTimeout(function() { loadImage(url, cacheImageFunc, this['getNextImage' + emt]); }, 30);
+  };
+  var loadImage = function(url, aCacheImage, aCallback) {
+    var img = document.createElement('img');
+
+    img.onload = (function(aCacheImage, aCallback) {
+      var cacheImage = aCacheImage,
+        callback = aCallback;
+      return function() {
+        cacheImage(this.src, this);
+        callback();
+      };
+    })(aCacheImage, aCallback);
+    img.src = url;
+  };    
             
-   function getEmotion(){
-      emotion = emotionsArray[iterator];
-      debug.innerHTML = emotion;
-      iterator ++;
-      if (iterator ===3){iterator = 0;}
-      //getFlickrImages();
-   };
-   var getFlickrImages = function getFlickrImager() {
+  function getEmotion(){
+    emotion = emotionsArray[iterator];
+    debug.innerHTML = emotion;
+    iterator ++;
+    if (iterator ===3){iterator = 0;}
+  };
+  var getFlickrImages = function getFlickrImager() {
     //http://pastebin.mozilla.org/796046
     image = document.getElementById("image");
     $.getJSON("http://api.flickr.com/services/feeds/photos_public.gne?tags=" + emotion + "&lang=en-us&format=json&jsoncallback=?", function(data){
@@ -197,118 +153,117 @@
         }     
       };  
     });  
-   }
-	 var getTwitter = function getTwitter(){
-			 // Trim the "@" or "#" from the start of the twitterData 
-			searchTerm  = twitterData.replace(/^#/, '').replace(/^@/,'');
-			// Get the JSON object for Twitter ID 
-			if (twitterData.match(/^@/)) {
-				$.getJSON('http://twitter.com/status/user_timeline/'+ searchTerm + '.json?count=5&callback=?', 
-						null, function(data) {
-						process_data(data);      
-				});   
-			} //end if (twitterData.match(/^@/)
-			// Get the JSON object  for the hashtag
-			else if (twitterData.match(/^#/)) {
-				$.getJSON('http://search.twitter.com/search.json?q=%23' + searchTerm + '&callback=?', 
-						null, function(data) {
-					process_data(data);
-				});
-			}  
-		};
-    var nextTweetOrNone = function () {
-      if (!jsonTweets.length) {
-        getTweets(); //"Activate" if page should be on an infinite loop
-        //return; /* "Activate" if only datalength amount tweets will been parsed */
-      }
-      setTimeout(printTweet, 5000);
-    };
+  };
+  var getTwitter = function getTwitter(){
+     // Trim the "@" or "#" from the start of the twitterData 
+    searchTerm  = twitterData.replace(/^#/, '').replace(/^@/,'');
+    // Get the JSON object for Twitter ID 
+    if (twitterData.match(/^@/)) {
+      $.getJSON('http://twitter.com/status/user_timeline/'+ searchTerm + '.json?count=5&callback=?', 
+          null, function(data) {
+          process_data(data);      
+      });   
+    } //end if (twitterData.match(/^@/)
+    // Get the JSON object  for the hashtag
+    else if (twitterData.match(/^#/)) {
+      $.getJSON('http://search.twitter.com/search.json?q=%23' + searchTerm + '&callback=?', 
+          null, function(data) {
+        process_data(data);
+      });
+    }  
+  };
+  var nextTweetOrNone = function () {
+    if (!jsonTweets.length) {
+      getTweets(); //"Activate" if page should be on an infinite loop
+      //return; /* "Activate" if only datalength amount tweets will been parsed */
+    }
+    setTimeout(printTweet, 5000);
+  };
 
-    var printTweet = function() {
-      /* pop tweets from the jsonTweets object */ 
-      var tweetToPrint = jsonTweets.pop();
+  var printTweet = function() {
+    /* pop tweets from the jsonTweets object */ 
+    var tweetToPrint = jsonTweets.pop();
 
-      /* Declare containers */
-      bdy = document.getElementById('normal'); // Gets div
-      /* container will contain div for tweetPic and tweet */
-      container = document.createElement('span');
-      containerWidth = 300;
-      containerHeight = 120;
+    /* Declare containers */
+    bdy = document.getElementById('normal'); // Gets div
+    /* container will contain div for tweetPic and tweet */
+    container = document.createElement('span');
+    containerWidth = 300;
+    containerHeight = 120;
 
-      tweetContainer = document.createElement('span');
-      picContainer = document.createElement('span');
-      picture = document.createElement('img');
-      var picHeight = 48;
-      var picWidth = 48;
-     
-      /* Generate random x and y coordinates */
-      var fitsInScreen = false;
-      while (!fitsInScreen) {
-        x = Math.round(Math.random()*(screenX));
-        y = Math.round(Math.random()*(screenY));
-        if ((x < screenX - containerWidth) && (y < screenY - containerWidth))
-        //if ((x < screenX) && (y < screenY))
-          fitsInScreen = true;
-      }
+    tweetContainer = document.createElement('span');
+    picContainer = document.createElement('span');
+    picture = document.createElement('img');
+    var picHeight = 48;
+    var picWidth = 48;
+   
+    /* Generate random x and y coordinates */
+    var fitsInScreen = false;
+    while (!fitsInScreen) {
+      x = Math.round(Math.random()*(screenX));
+      y = Math.round(Math.random()*(screenY));
+      if ((x < screenX - containerWidth) && (y < screenY - containerWidth))
+      //if ((x < screenX) && (y < screenY))
+        fitsInScreen = true;
+    }
 
-      /* Declare colours for each of the hashtags */
-      if (mood == "angry") {
-        var colours = ["#EE9A49", "#CC3232", "#B22222", "#330000", "#8B7D7B",
-                        "#EED5D2", "#FF2400", "#FF6347", "#5E2612", "#E3170D"];
-      }
-      else if (mood == "sad") {
-        var colours = ["#525C65", "#4D4DFF", "#4D6FAC", "#42526C", "#7171C6",
-                        "#8968CD", "#104E8B", "#694489", "#0147FA", "#2F2F4F"];
-        
-      }
-      else if (mood == "happy") {
-        var colours = ["#698B22", "#FFE600", "#A2C93A", "#FFA824", "#FF8600",
-                        "#B13E0F", "#FF3030", "#00B2EE", "#499DF5", "#8968CD"];
-      }
-
-      /* The following will randomly determine the colour that the tweet is
-        to be printed in */      
-      var index = Math.floor(Math.random() * 10);
+    /* Declare colours for each of the hashtags */
+    if (mood == "angry") {
+      var colours = ["#EE9A49", "#CC3232", "#B22222", "#330000", "#8B7D7B",
+                      "#EED5D2", "#FF2400", "#FF6347", "#5E2612", "#E3170D"];
+    }
+    else if (mood == "sad") {
+      var colours = ["#525C65", "#4D4DFF", "#4D6FAC", "#42526C", "#7171C6",
+                      "#8968CD", "#104E8B", "#694489", "#0147FA", "#2F2F4F"];
       
-      /* Set attributes of the container */
-      $(container).css({'position': 'absolute', 
-                      'top' : y + 'px', 
-                      'left' : x +'px', 
-                      'width' : containerWidth + 'px', 
-                      'height' : containerHeight + 'px', 
-                      'color' : colours[index],
-                      'z-index' : '-1'});
+    }
+    else if (mood == "happy") {
+      var colours = ["#698B22", "#FFE600", "#A2C93A", "#FFA824", "#FF8600",
+                      "#B13E0F", "#FF3030", "#00B2EE", "#499DF5", "#8968CD"];
+    }
 
-      /* Set attributes of the picture container */
-      $(picContainer).css({ 'float' : 'left',
-                      'margin-right' : '5px',
-                      'width' : picWidth + 'px',
-                      'height' : picHeight + 'px'});
-      /* Should picContainer have a z-index = 0? */
+    /* The following will randomly determine the colour that the tweet is
+      to be printed in */      
+    var index = Math.floor(Math.random() * 10);
+    
+    /* Set attributes of the container */
+    $(container).css({'position': 'absolute', 
+                    'top' : y + 'px', 
+                    'left' : x +'px', 
+                    'width' : containerWidth + 'px', 
+                    'height' : containerHeight + 'px', 
+                    'color' : colours[index],
+                    'z-index' : '-1'});
 
-      picture.src = tweetToPrint.tweetPic;
-      picture.style.width = 48;
-      picture.style.height = 48;
-      picContainer.appendChild(picture);
-      container.appendChild(picContainer);
+    /* Set attributes of the picture container */
+    $(picContainer).css({ 'float' : 'left',
+                    'margin-right' : '5px',
+                    'width' : picWidth + 'px',
+                    'height' : picHeight + 'px'});
+    /* Should picContainer have a z-index = 0? */
 
-      /* Set attributes of tweetContainer container */
-      //$(tweetContainer).css({ });
-      
-      text = document.createTextNode( "@"+ tweetToPrint.twitterId + ": " + tweetToPrint.tweet);
-      tweetContainer.appendChild(text);
-      container.appendChild(tweetContainer);
+    picture.src = tweetToPrint.tweetPic;
+    picture.style.width = 48;
+    picture.style.height = 48;
+    picContainer.appendChild(picture);
+    container.appendChild(picContainer);
 
-      /* Fade in to screen */
-      $(container).fadeIn(3000);
-      /* Reduce opacity */
-      $(container).fadeTo(1000, 0.30);
+    /* Set attributes of tweetContainer container */
+    //$(tweetContainer).css({ });
+    
+    text = document.createTextNode( "@"+ tweetToPrint.twitterId + ": " + tweetToPrint.tweet);
+    tweetContainer.appendChild(text);
+    container.appendChild(tweetContainer);
 
-      bdy.appendChild(container);
+    /* Fade in to screen */
+    $(container).fadeIn(3000);
+    /* Reduce opacity */
+    $(container).fadeTo(1000, 0.30);
 
-      nextTweetOrNone();
-    }; //end printTweet
+    bdy.appendChild(container);
 
+    nextTweetOrNone();
+  }; //end printTweet
 
   // skews an image on four x and y points.
   // make sure the image is using it's natural height and width (don't stretch it) or this function will break!
@@ -408,8 +363,6 @@ addEventListener('DOMContentLoaded', function(){
     $.getJSON('http://api.flickr.com/services/feeds/photos_public.gne?tags=angry&lang=en-us&format=json&jsoncallback=?',null, function(data){ flickrCallback(data, "angry");});
   }, 1000);
   init();
- // document.getElementById("happy").addEventListener('loadeddata', function(){ playVideo(); }, false);
- //setTimeout(function(){playVideo();}, 40000);
  twitterInterval = setInterval(getEmotion, (DURATION *3)*1000); 
 }, false);
 </script>
