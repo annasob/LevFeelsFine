@@ -1,5 +1,20 @@
 <html>
 <head>
+<style type="text/css">
+.column {
+  float:left;
+  width: 26%;
+  height: 300px;
+  padding:10px 10px 10px 10px;
+}
+#v {
+  width: 530px;
+}
+.top {
+  height: 30%;
+  padding:10px 10px 10px 10px;
+}
+</style>
 <script src="http://code.jquery.com/jquery-latest.min.js"></script>
 <script src="http://matrix.senecac.on.ca/~daoberes/json.js"></script>
 
@@ -13,6 +28,7 @@
   var screenX, screenY;
   var emotionsArray = new Array("angry","sad","happy");
   var iterator = 0;
+  var tweetCount = 1;
   var playingVideo = false;
   var twitterInterval,twitterInterval2, videoInterval, videoFunctionInterval;
   var imgUrls = [];/*{
@@ -58,7 +74,6 @@
     /* Get the screen size */
     screenX = screen.availWidth;
     screenY = screen.availHeight;
-
   };
     
   var flickrCallback = function(o, emt) {
@@ -145,7 +160,8 @@
   };
   var nextTweetOrNone = function () {
     if (!jsonTweets.length) {
-      getTweets(); //"Activate" if page should be on an infinite loop
+      // get new tweets... shouldnt be used because getTwitter() is on interval
+      getTwitter(); //"Activate" if page should be on an infinite loop
       //return; /* "Activate" if only datalength amount tweets will been parsed */
     }
     setTimeout(printTweet, 5000);
@@ -156,7 +172,9 @@
     var tweetToPrint = jsonTweets.pop();
 
     /* Declare containers */
-    bdy = document.getElementById('normal'); // Gets div
+    bdy = document.getElementById('tweet' + tweetCount); // Gets div
+    tweetCount ++;
+    if (tweetCount >4) { tweetCount = 1; }
     /* container will contain div for tweetPic and tweet */
     container = document.createElement('span');
     containerWidth = 300;
@@ -346,27 +364,32 @@ addEventListener('DOMContentLoaded', function(){
 }, false);
 </script>
 </head>
- <div style="text-align:center;">
- <div id="mood"></div>
-  <div id="page1" style="display:none;">
-   Twitter:  <input id="twitter" type="text" value="@StephenAtHome" name="twitter" /><br />
-    <button type="button" onClick="run();">Click Me!</button><br />
-  </div>
-  <div id="page2" style="position:relative;display:inline;">
-    <video src="http://scotland.proximity.on.ca/sdowne/lff/sad.ogg" style="display:none;" width="480" height="270" id="sad"></video>
-    <video src="http://scotland.proximity.on.ca/sdowne/lff/happy.ogg" style="display:none;" width="480" height="270" id="happy"></video>
-    <video src="http://scotland.proximity.on.ca/sdowne/lff/angry.ogg" style="display:none;" width="480" height="270" id="angry"></video>
-    <video src="http://scotland.proximity.on.ca/sdowne/lff/neutral.ogg" style="display:none;" width="480" height="270" id="neutral"></video>
-    <video src="http://scotland.proximity.on.ca/sdowne/lff/middle.ogg" style="display:none;" width="480" height="270" id="middle"></video>
+<div class="top" id="tweet1">&nbsp;</div>
+<div id="centre">
+  <div class="column" id="tweet2">&nbsp;</div>
+  <div class="column" id="v">
+    <div style="text-align:center;padding:10px 10px 10px 10px;">
+      <div id="mood" style="text-align:center;"></div>
 
-    <img style="display:none;" id="image" />
-    <canvas style="display:none;border-radius:10px;border-style:solid;border-width:15px;" id="canvas" width="480" height="270" ></canvas>
-    <canvas style="display:none;position:absolute;left:0px;border-radius:10px;border-style:solid;border-width:15px;" id="canvas2" width="480" height="270" ></canvas>
-    <audio style="display:none;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/sad.ogg" id="sadSong" controls="none"></audio>
-    <audio style="display:none;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/happy.ogg" id="happySong" controls="none"></audio>
-    <audio style="display:none;" src="angry.ogg" id="angrySong" controls="none"></audio>
+      <div style="position:relative;display:inline;">
+        <video src="http://scotland.proximity.on.ca/sdowne/lff/sad.ogg" style="display:none;" width="480" height="270" id="sad"></video>
+        <video src="http://scotland.proximity.on.ca/sdowne/lff/happy.ogg" style="display:none;" width="480" height="270" id="happy"></video>
+        <video src="http://scotland.proximity.on.ca/sdowne/lff/angry.ogg" style="display:none;" width="480" height="270" id="angry"></video>
+        <video src="http://scotland.proximity.on.ca/sdowne/lff/neutral.ogg" style="display:none;" width="480" height="270" id="neutral"></video>
+        <video src="http://scotland.proximity.on.ca/sdowne/lff/middle.ogg" style="display:none;" width="480" height="270" id="middle"></video>
+
+        <img style="display:none;" id="image" />
+        <canvas style="display:none;border-radius:10px;border-style:solid;border-width:15px;" id="canvas" width="480" height="270" ></canvas>
+        <canvas style="display:none;position:absolute;left:0px;border-radius:10px;border-style:solid;border-width:15px;" id="canvas2" width="480" height="270" ></canvas>
+        <audio style="display:none;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/sad.ogg" id="sadSong" controls="none"></audio>
+        <audio style="display:none;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/happy.ogg" id="happySong" controls="none"></audio>
+        <audio style="display:none;" src="angry.ogg" id="angrySong" controls="none"></audio>
+      </div>
+    </div>
   </div>
-  <div id="normal">
-  </div>
+  <div class="column" id="tweet3">&nbsp;</div>
+  <div style="clear:both"></div>
 </div>
+<div class="top" id="tweet4">&nbsp;</div>
+
 </html>
