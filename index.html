@@ -15,11 +15,11 @@
   var iterator = 0;
   var playingVideo = false;
   var twitterInterval,twitterInterval2, videoInterval, videoFunctionInterval;
-  var imgUrls = {
+  var imgUrls = [];/*{
     happyUrls : [],
     sadUrls   : [],
     angryUrls : []  
-  };
+  };*/
   var images = {
     happyImg : [],
     sadImg   : [],
@@ -28,6 +28,7 @@
     sadCounter   :0,
     angryCounter :0,
   };
+  var imgArray = [];
   function fadeIn(audio) {
     // play the song if its not playing
     if (audio.paused) {
@@ -61,72 +62,61 @@
   };
     
   var flickrCallback = function(o, emt) {
-    var arr = imgUrls[emt+"Urls"];
     for (var i in o.items) {
-      arr.push((o.items[i].media.m).replace(/_m\.jpg$/, ".jpg"));
-    } 
-    getNextImage(emt, arr); //emotion);
+      // only use landscape images
+      //if (o.items.height > o.items.width) {
+        imgUrls.push((o.items[i].media.m).replace(/_m\.jpg$/, ".jpg"));
+      //}          
+    }
+    getNextImage(emt);
   };
-    
-  // ugly hack to call the getNextImage function with the right parameters depending on the emotion/mood
-  this.getNextImageangry= function() { getNextImage('angry', imgUrls['angryUrls']); };
-  this.getNextImagesad = function() { getNextImage('sad', imgUrls['sadUrls']); };
-  this.getNextImagehappy = function() { getNextImage('happy', imgUrls['happyUrls']); };
-    
-  var getNextImage = function(emt, emotionArray) {
-    // get the next url to load
-    var url = emotionArray.pop();
-    if(!url) return;
-    
-    cacheImageFunc = (function(emotion) {
-      var emt = emotion;
-      return function(url, img) {
-      console.log("adding image:"+emt);
-        images[emt+"Img"].push(img);
-        // if any images of the default emotion are loaded play the video
-        if( !playingVideo && emt === DEFAULTEMT){
-        console.log("playing video");
-          playingVideo = true;
-          playVideo();
-          document.getElementById(DEFAULTEMT+"Song").play();
-        }
-      };
-    })(emt);
-    setTimeout(function() { loadImage(url, cacheImageFunc, this['getNextImage' + emt]); }, 30);
-  };
+
+  // ugly hack made to deal witht the right emotion being passed in to getNextImage
+  this.getNextImageangry= function() { getNextImage('angry'); };
+  this.getNextImagesad = function() { getNextImage('sad'); };
+  this.getNextImagehappy = function() { getNextImage('happy'); };
   
+  var getNextImage = function(emt) {
+    if (getNextImage.idx++ == imgUrls.length) {
+      return;
+    }
+
+    var nextUrl = imgUrls[getNextImage.idx],
+        cacheImageFunc = (function(emot) {
+        var emt = emot;
+        return function(url, img) {
+        if( url == "http://farm5.static.flickr.com/4154/5027601109_1e65700c4d.jpg" || url == "http://farm5.static.flickr.com/4087/5027600333_116331c8f2.jpg" ||
+          url == "http://farm5.static.flickr.com/4128/5027596623_6372cd3f5c.jpg" ) { alert (emt); }
+          imgArray.push({image: img, type: emt});
+          /*if( !playingVideo && DEFAULTEMT === emt){
+            playingVideo = true;
+            playVideo();
+          }*/
+        };
+      })(emt);
+    setTimeout(function() { loadImage(nextUrl, cacheImageFunc, this['getNextImage' + emt]); }, 30);
+  }
+  getNextImage.idx = 0;
+
   var loadImage = function(url, aCacheImage, aCallback) {
     var img = document.createElement('img');
 
     img.onload = (function(aCacheImage, aCallback) {
       var cacheImage = aCacheImage,
-        callback = aCallback;
+          callback = aCallback;
       return function() {
         cacheImage(this.src, this);
         callback();
       };
     })(aCacheImage, aCallback);
     img.src = url;
-  };    
+  };
             
   function getEmotion(){
     emotion = emotionsArray[iterator];
     debug.innerHTML = emotion;
     iterator ++;
     if (iterator ===3){iterator = 0;}
-  };
-  var getFlickrImages = function getFlickrImager() {
-    //http://pastebin.mozilla.org/796046
-    image = document.getElementById("image");
-    $.getJSON("http://api.flickr.com/services/feeds/photos_public.gne?tags=" + emotion + "&lang=en-us&format=json&jsoncallback=?", function(data){
-      images = [];
-      images = data.items;       
-      image.onload = function() {
-        if (image.height > image.width) {
-          image.src = images[i.getIndex()].media.m;
-        }     
-      };  
-    });  
   };
   var getTwitter = function getTwitter(){
     /* Get tweets from twitter */
@@ -280,7 +270,6 @@
     var interval = 0,
        videoLoaded = false,
         step = true,
-        counter,
         oldEmotion = "",
         image = document.getElementById("image"),
         video = document.getElementById(emotion),
@@ -295,13 +284,19 @@
             middle.pause();
             middle.currentTime = 0;
             video.play();
-            counter = images[emotion+"Counter"];
-            image.src = images[emotion+"Img"][counter].src;
-            images[emotion+"Counter"]++;
+            //counter = images[emotion+"Counter"];
+            for (counter = 0; counter < imgArray.length; counter ++) { 
+              if ( imgArray[counter]["type"] === emotion ) {
+              
+                image.src = imgArray[counter]["image"].src;
+                imgArray.splice(counter,1);
+                counter = imgArray.length;
+              }
+            }
           }
           if (video.currentTime <= DURATION) { // draw frame of first "face" video
             canvasCtx.drawImage(video, 0, 0, video.width, video.height);
-
+            //mozRequestAnimationFrame instead of drawimage
           } else { // first "face" video is done, stop first video
             step = false;
             document.getElementById("canvas2").style.display = "inline";
@@ -346,7 +341,8 @@ addEventListener('DOMContentLoaded', function(){
   init();
  twitterInterval2 = setInterval(getEmotion, (DURATION *3)*1000);
  twitterInterval = setInterval(getTwitter, (DURATION *3)*1000);
- 
+ setTimeout(playVideo, 10000);
+ setTimeout(function() { document.getElementById("happySong").play()}, 10000);
 }, false);
 </script>
 </head>
