@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
 <style type="text/css">
@@ -16,7 +17,6 @@
 }
 </style>
 <script src="http://code.jquery.com/jquery-latest.min.js"></script>
-<script src="http://matrix.senecac.on.ca/~daoberes/json.js"></script>
 
 <script>
   var DURATION = 8;
@@ -30,21 +30,15 @@
   var iterator = 0;
   var tweetCount = 1;
   var playingVideo = false;
+  var counter
   var twitterInterval,twitterInterval2, videoInterval, videoFunctionInterval;
-  var imgUrls = [];/*{
-    happyUrls : [],
-    sadUrls   : [],
-    angryUrls : []  
-  };*/
-  var images = {
-    happyImg : [],
-    sadImg   : [],
-    angryImg : [],
-    happyCounter :0,
-    sadCounter   :0,
-    angryCounter :0,
+  // Each emotion array	will hold URLs to start, then downloaded Images	after we get them all.
+  var flickr = {
+    happy: {images: [], position: 0},
+    sad:   {images: [], position: 0},
+    angry: {images: [], position: 0}
   };
-  var imgArray = [];
+  
   function fadeIn(audio) {
     // play the song if its not playing
     if (audio.paused) {
@@ -76,56 +70,50 @@
     screenY = screen.availHeight;
   };
     
+  
+
   var flickrCallback = function(o, emt) {
     for (var i in o.items) {
-      // only use landscape images
-      //if (o.items.height > o.items.width) {
-        imgUrls.push((o.items[i].media.m).replace(/_m\.jpg$/, ".jpg"));
-      //}          
+      // Emotion arrays	start by holding URLs, we convert them to Images later.
+      flickr[emt].images.push((o.items[i].media.m).replace(/_m\.jpg$/, ".jpg"));
     }
     getNextImage(emt);
   };
 
-  // ugly hack made to deal witht the right emotion being passed in to getNextImage
-  this.getNextImageangry= function() { getNextImage('angry'); };
-  this.getNextImagesad = function() { getNextImage('sad'); };
-  this.getNextImagehappy = function() { getNextImage('happy'); };
-  
   var getNextImage = function(emt) {
-    if (getNextImage.idx++ == imgUrls.length) {
+    var	emotionImages =	flickr[emt].images;
+    var	url = emotionImages.pop();
+
+    if (!url) {
       return;
     }
 
-    var nextUrl = imgUrls[getNextImage.idx],
-        cacheImageFunc = (function(emot) {
-        var emt = emot;
-        return function(url, img) {
-        if( url == "http://farm5.static.flickr.com/4154/5027601109_1e65700c4d.jpg" || url == "http://farm5.static.flickr.com/4087/5027600333_116331c8f2.jpg" ||
-          url == "http://farm5.static.flickr.com/4128/5027596623_6372cd3f5c.jpg" ) { alert (emt); }
-          imgArray.push({image: img, type: emt});
-          /*if( !playingVideo && DEFAULTEMT === emt){
-            playingVideo = true;
-            playVideo();
-          }*/
-        };
-      })(emt);
-    setTimeout(function() { loadImage(nextUrl, cacheImageFunc, this['getNextImage' + emt]); }, 30);
-  }
-  getNextImage.idx = 0;
+    if (typeof url != 'string') {
+      // Whoops, we just took an Image off the end of the array, we're done converting
+      emotionImages.push(url);
+      return;
+    }
 
-  var loadImage = function(url, aCacheImage, aCallback) {
+    var	callback = (function(aEmotion) {
+      var emotion = aEmotion;
+      return function()	{
+      	getNextImage(emotion);
+      };
+    })(emt);
+
     var img = document.createElement('img');
 
-    img.onload = (function(aCacheImage, aCallback) {
-      var cacheImage = aCacheImage,
+    img.onload = (function(aArray, aCallback) {
+      var arr      = aArray,
           callback = aCallback;
       return function() {
-        cacheImage(this.src, this);
+      	// Put downloaded images at the	front of the array.
+        arr.unshift(this);
         callback();
       };
-    })(aCacheImage, aCallback);
+    })(emotionImages, callback);
     img.src = url;
-  };
+  }
             
   function getEmotion(){
     emotion = emotionsArray[iterator];
@@ -289,6 +277,7 @@
        videoLoaded = false,
         step = true,
         oldEmotion = "",
+        counter,
         image = document.getElementById("image"),
         video = document.getElementById(emotion),
         middle = document.getElementById("middle"),
@@ -302,15 +291,10 @@
             middle.pause();
             middle.currentTime = 0;
             video.play();
-            //counter = images[emotion+"Counter"];
-            for (counter = 0; counter < imgArray.length; counter ++) { 
-              if ( imgArray[counter]["type"] === emotion ) {
-              
-                image.src = imgArray[counter]["image"].src;
-                imgArray.splice(counter,1);
-                counter = imgArray.length;
-              }
-            }
+            //get the image from flickr array
+            image.src = flickr[emotion].images[flickr[emotion].position].src;
+            flickr[emotion].position ++;
+            if (flickr[emotion].position >= flickr[emotion].images.length) { alert("in here"); flickr[emotion].position = 0; }            
           }
           if (video.currentTime <= DURATION) { // draw frame of first "face" video
             canvasCtx.drawImage(video, 0, 0, video.width, video.height);
@@ -372,18 +356,17 @@ addEventListener('DOMContentLoaded', function(){
       <div id="mood" style="text-align:center;"></div>
 
       <div style="position:relative;display:inline;">
-        <video src="http://scotland.proximity.on.ca/sdowne/lff/sad.ogg" style="display:none;" width="480" height="270" id="sad"></video>
-        <video src="http://scotland.proximity.on.ca/sdowne/lff/happy.ogg" style="display:none;" width="480" height="270" id="happy"></video>
-        <video src="http://scotland.proximity.on.ca/sdowne/lff/angry.ogg" style="display:none;" width="480" height="270" id="angry"></video>
-        <video src="http://scotland.proximity.on.ca/sdowne/lff/neutral.ogg" style="display:none;" width="480" height="270" id="neutral"></video>
-        <video src="http://scotland.proximity.on.ca/sdowne/lff/middle.ogg" style="display:none;" width="480" height="270" id="middle"></video>
+        <video src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/videos/sad.ogg" style="display:none;" width="480" height="270" id="sad"></video>
+        <video src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/videos/happy.ogg" style="display:none;" width="480" height="270" id="happy"></video>
+        <video src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/videos/angry.ogg" style="display:none;" width="480" height="270" id="angry"></video>
+        <video src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/videos/middle.ogg" style="display:none;" width="480" height="270" id="middle"></video>
 
         <img style="display:none;" id="image" />
         <canvas style="display:none;border-radius:10px;border-style:solid;border-width:15px;" id="canvas" width="480" height="270" ></canvas>
         <canvas style="display:none;position:absolute;left:0px;border-radius:10px;border-style:solid;border-width:15px;" id="canvas2" width="480" height="270" ></canvas>
         <audio style="display:none;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/sad.ogg" id="sadSong" controls="none"></audio>
         <audio style="display:none;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/happy.ogg" id="happySong" controls="none"></audio>
-        <audio style="display:none;" src="angry.ogg" id="angrySong" controls="none"></audio>
+        <audio style="display:none;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/angry.ogg" id="angrySong" controls="none"></audio>
       </div>
     </div>
   </div>
