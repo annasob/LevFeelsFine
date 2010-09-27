@@ -1,21 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-<style type="text/css">
-.column {
-  float:left;
-  width: 26%;
-  height: 300px;
-  padding:10px 10px 10px 10px;
-}
-#v {
-  width: 530px;
-}
-.top {
-  height: 30%;
-  padding:10px 10px 10px 10px;
-}
-</style>
 <script src="http://code.jquery.com/jquery-latest.min.js"></script>
 
 <script>
@@ -62,8 +47,6 @@
   };
       
   function init() {
-    debug = document.getElementById("mood");
-    debug.innerHTML = emotion;
      
     /* Get the screen size */
     screenX = screen.availWidth;
@@ -348,31 +331,17 @@ addEventListener('DOMContentLoaded', function(){
 }, false);
 </script>
 </head>
-<div class="top" id="tweet1">&nbsp;</div>
-<div id="centre">
-  <div class="column" id="tweet2">&nbsp;</div>
-  <div class="column" id="v">
-    <div style="text-align:center;padding:10px 10px 10px 10px;">
-      <div id="mood" style="text-align:center;"></div>
 
-      <div style="position:relative;display:inline;">
-        <video src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/videos/sad.ogg" style="display:none;" width="480" height="270" id="sad"></video>
-        <video src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/videos/happy.ogg" style="display:none;" width="480" height="270" id="happy"></video>
-        <video src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/videos/angry.ogg" style="display:none;" width="480" height="270" id="angry"></video>
-        <video src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/videos/middle.ogg" style="display:none;" width="480" height="270" id="middle"></video>
-
-        <img style="display:none;" id="image" />
-        <canvas style="display:none;border-radius:10px;border-style:solid;border-width:15px;" id="canvas" width="480" height="270" ></canvas>
-        <canvas style="display:none;position:absolute;left:0px;border-radius:10px;border-style:solid;border-width:15px;" id="canvas2" width="480" height="270" ></canvas>
-        <audio style="display:none;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/sad.ogg" id="sadSong" controls="none"></audio>
-        <audio style="display:none;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/happy.ogg" id="happySong" controls="none"></audio>
-        <audio style="display:none;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/angry.ogg" id="angrySong" controls="none"></audio>
-      </div>
-    </div>
-  </div>
-  <div class="column" id="tweet3">&nbsp;</div>
-  <div style="clear:both"></div>
-</div>
-<div class="top" id="tweet4">&nbsp;</div>
+<video src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/videos/sad.ogg" style="display:none;" width="480" height="270" id="sad"></video>
+<video src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/videos/happy.ogg" style="display:none;" width="480" height="270" id="happy"></video>
+<video src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/videos/angry.ogg" style="display:none;" width="480" height="270" id="angry"></video>
+<video src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/videos/middle.ogg" style="display:none;" width="480" height="270" id="middle"></video>
+<audio style="display:none;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/sad.ogg" id="sadSong" controls="none"></audio>
+<audio style="display:none;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/happy.ogg" id="happySong" controls="none"></audio>
+<audio style="display:none;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/angry.ogg" id="angrySong" controls="none"></audio>
+<img style="display:none;" id="image" />
+<div style="position:fixed;left:50%;top:50%;margin:-135px 0 0 -240px;" id="videoDiv" width="480" height="270" ></div>
+<canvas style="display:none;border-radius:10px;-moz-border-radius: 10px;-webkit-border-radius: 10px;position:fixed;left:50%;top:50%;margin:-135px 0 0 -240px;border-style:solid;border-width:15px;" id="canvas" width="480" height="270" ></canvas>
+<canvas style="display:none;border-radius:10px;-moz-border-radius: 10px;-webkit-border-radius: 10px;position:fixed;left:50%;top:50%;margin:-135px 0 0 -240px;border-style:solid;border-width:15px;" id="canvas2" width="480" height="270" ></canvas>
 
 </html>
