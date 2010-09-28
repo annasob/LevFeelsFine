@@ -8,13 +8,12 @@
   var DEFAULTEMT = "happy";
   var VIDEOHEIGHT = 270;
   var VIDEOWIDTH = 480;
-  var twitterData  = "newTwitter";//"LevFeels";
+  var twitterData  = "newTwitter"; //"LevFeels"
   var emotion = "happy";
   var screenX, screenY, videoPosition;
-  var emotionsArray = new Array("angry","sad","happy");
-  var iterator = 0;
   var playingVideo = false;
-  var twitterInterval,twitterInterval2, videoInterval, videoFunctionInterval;
+  var twitterInterval, videoInterval;
+  var allTweets = [];
   // Each emotion array	will hold URLs to start, then downloaded Images	after we get them all.
   var flickr = {
     happy: {images: [], position: 0},
@@ -94,34 +93,35 @@
     })(emotionImages, callback);
     img.src = url;
   }
-            
-  function getEmotion(){
-    emotion = emotionsArray[iterator];
-   
-    iterator ++;
-    if (iterator ===3){iterator = 0;}
-  };
+
   var getTwitter = function getTwitter(){
     /* Get tweets from twitter */
     $.getJSON('http://search.twitter.com/search.json?q=%23' + twitterData + '&callback=?',
         null, function(data) {
 
-      datalength = data.results.length;
       /* Will contain concatenation of all tweets */
       var tweet = "";
-
+      var tweetObject = "";
       /* Store tweets, twitterIds, twitter user pics, and tweet ID's 
         in a JSON object/array */
-      jsonTweets = [];    //Declare an array
-
+      var tweetObject = "";
+      var tweetText = "";
       /* Iterate through JSON object and push Twitter pictures and tweets
        onto another JSON object */
-      for (i = 0; i < datalength; i++) {
+      for (i = 0; i < data.results.length; i++) {
         if (data.results[i].text) {
-          jsonTweets.push({ "tweetPic" : data.results[i].profile_image_url, 
+          tweetText = data.results[i].text;
+          tweetObject = { "tweetPic" : data.results[i].profile_image_url, 
                             "tweet" : data.results[i].text, 
                             "twitterId" : data.results[i].from_user,
-                            "id" : data.results[i].id });
+                            "id" : data.results[i].id };
+          // only add new tweets to the array so we dont reprint old tweets
+          // only use new tweets to determine emotion
+          if ($.inArray(tweetText, allTweets) === -1) {
+            tweet += data.results[i].text +" ";
+            setTimeout(function() { allTweets.push(tweetText); }, 5000);
+            setTimeout(function() { printTweet(tweetObject); }, 15000 *i);
+          }
           // add to the tweet string
           tweet += data.results[i].text +" ";
         }
@@ -163,33 +163,17 @@
 
       if (happy >= sad && happy >= angry) {
         emotion = "happy";
-       // alert("changing emotion to happy");
       }
       else if (sad >= happy && sad >= angry) {
         emotion = "sad";
-       // alert("changing emotion to sad");
       }
       else if (angry >= sad && angry >= happy) {
         emotion = "angry";
-       // alert("changing emotion to angry");
       }
-      nextTweetOrNone();
     });    
   };
-  var nextTweetOrNone = function () {
-    if (jsonTweets.length === 0) {
-      // get new tweets... shouldnt be used because getTwitter() is on interval
-      getTwitter(); //"Activate" if page should be on an infinite loop
-      //return; /* "Activate" if only datalength amount tweets will been parsed */
-    } 
-    setTimeout(printTweet, 5000);
-  };
-
-  var printTweet = function() {
-    /* pop tweets from the jsonTweets object */ 
-    var tweetToPrint = jsonTweets.pop();
-    if (!tweetToPrint) return;
-    
+  
+  var printTweet = function(tweetToPrint) {
     /* Declare containers */
     bdy = document.getElementById('tweets'); // Gets div
     /* container will contain div for tweetPic and tweet */
@@ -247,7 +231,9 @@
     $(picContainer).css({ 'float' : 'left',
                     'margin-right' : '5px',
                     'width' : picWidth + 'px',
-                    'height' : picHeight + 'px'});
+                    'height' : picHeight + 'px',
+                    'padding-left': '3px',
+                    'padding-top' : '3px'});
     /* Should picContainer have a z-index = 0? */
 
     picture.src = tweetToPrint.tweetPic;
@@ -255,9 +241,6 @@
     picture.height = picHeight;
     picContainer.appendChild(picture);
     container.appendChild(picContainer);
-
-    /* Set attributes of tweetContainer container */
-    //$(tweetContainer).css({ });
     
     text = document.createTextNode( "@"+ tweetToPrint.twitterId + ": " + tweetToPrint.tweet.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&').replace(/&quote;/g, '"'));
     tweetContainer.appendChild(text);
@@ -270,7 +253,6 @@
 
     bdy.appendChild(container);
 
-    nextTweetOrNone();
   }; //end printTweet
 
   // skews an image on four x and y points.
@@ -372,7 +354,6 @@ addEventListener('DOMContentLoaded', function(){
     $.getJSON('http://api.flickr.com/services/feeds/photos_public.gne?tags=angry&lang=en-us&format=json&jsoncallback=?',null, function(data){ flickrCallback(data, "angry");});
   }, 1000);
   init();
- //twitterInterval2 = setInterval(getEmotion, (DURATION *3)*1000);
  twitterInterval = setInterval(getTwitter, (DURATION *3)*1000);
  setTimeout(playVideo, 10000);
  setTimeout(function() { document.getElementById("happySong").play()}, 10000);
@@ -387,9 +368,9 @@ window.onresize = function (){
 <video src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/videos/happy.ogg" style="display:none;" width="480" height="270" id="happy"></video>
 <video src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/videos/angry.ogg" style="display:none;" width="480" height="270" id="angry"></video>
 <video src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/videos/middle.ogg" style="display:none;" width="480" height="270" id="middle"></video>
-<audio style="display:none;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/sad.ogg" id="sadSong" controls="none"></audio>
-<audio style="display:none;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/happy.ogg" id="happySong" controls="none"></audio>
-<audio style="display:none;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/angry.ogg" id="angrySong" controls="none"></audio>
+<audio style="display:none;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/sad.ogg" id="sadSong" controls="none" loop></audio>
+<audio style="display:none;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/happy.ogg" id="happySong" controls="none" loop></audio>
+<audio style="display:none;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/angry.ogg" id="angrySong" controls="none" loop></audio>
 <img style="display:none;" id="image" />
 <div style="position:fixed;left:50%;top:50%;margin:-135px 0 0 -240px;" id="videoDiv" width="480" height="270" ></div>
 <canvas style="display:none;border-radius:10px;-moz-border-radius: 10px;-webkit-border-radius: 10px;position:fixed;left:50%;top:50%;margin:-135px 0 0 -240px;border-style:solid;border-width:15px;" id="canvas" width="480" height="270" ></canvas>
