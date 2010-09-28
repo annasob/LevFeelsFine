@@ -182,7 +182,7 @@
     tweetContainer = document.createElement('span');
     picContainer = document.createElement('span');
     picture = document.createElement('img');
-    var picHeight = 120-6;
+    var picHeight = 114;
     var picWidth = 120;
    
     /* Generate random x and y coordinates */
@@ -353,16 +353,22 @@
   
 // Call ready event when DOM is loaded
 addEventListener('DOMContentLoaded', function(){ 
-   
-  setTimeout(function() {
-    $.getJSON('http://api.flickr.com/services/feeds/photos_public.gne?tags=happy&lang=en-us&format=json&jsoncallback=?',null, function(data){ flickrCallback(data, "happy");});
-    $.getJSON('http://api.flickr.com/services/feeds/photos_public.gne?tags=sad&lang=en-us&format=json&jsoncallback=?',null, function(data){ flickrCallback(data, "sad");});
-    $.getJSON('http://api.flickr.com/services/feeds/photos_public.gne?tags=angry&lang=en-us&format=json&jsoncallback=?',null, function(data){ flickrCallback(data, "angry");});
-  }, 1000);
+
+  $.getJSON('http://api.flickr.com/services/feeds/photos_public.gne?tags=happy&lang=en-us&format=json&jsoncallback=?',null, function(data){ flickrCallback(data, "happy");
+    $.getJSON('http://api.flickr.com/services/feeds/photos_public.gne?tags=sad&lang=en-us&format=json&jsoncallback=?',null, function(data){ flickrCallback(data, "sad");
+      $.getJSON('http://api.flickr.com/services/feeds/photos_public.gne?tags=angry&lang=en-us&format=json&jsoncallback=?',null, function(data){ flickrCallback(data, "angry");
+        //document.getElementById("happySong").play();
+        playVideo();
+      });
+    });
+  });
+  getTwitter();
+  twitterInterval = setInterval(getTwitter, (DURATION *3)*1000);
   init();
- twitterInterval = setInterval(getTwitter, (DURATION *3)*1000);
- setTimeout(playVideo, 10000);
- setTimeout(function() { document.getElementById("happySong").play()}, 10000);
+ //setTimeout(playVideo, 10000);
+ //playVideo();
+  document.getElementById("happySong").play();
+ //setTimeout(function() { document.getElementById("happySong").play()}, 10000);
 }, false);
 window.onresize = function (){
     videoPosition = $("#videoDiv").position();
