@@ -121,9 +121,8 @@
         if (data.results[i].text) {
           tweetText = data.results[i].text;
           tweetObject = { "tweetPic" : data.results[i].profile_image_url, 
-                            "tweet" : data.results[i].text, 
-                            "twitterId" : data.results[i].from_user,
-                            "id" : data.results[i].id };
+                            "tweet" : data.results[i].text,
+                            "twitterId" : data.results[i].from_user};
           // only add new tweets to the array so we dont reprint old tweets
           // only use new tweets to determine emotion
           if ($.inArray(tweetText, allTweets) === -1) {
@@ -141,9 +140,8 @@
       var happy = 0;
       var sad = 0;
       var angry = 0;
-      var neutral = 0;         //For posts that are objective (ie. to links)
       var tweetArray = tweet.split(' ');
-      var internetRegex = /http:\/\/*/;   //Regex for the start of a url
+      var internetRegex = /http:\/\/*/;   //Regex for the start of a url*/
 
       for (i = 0; i < tweetArray.length; i++ ) {
         if (tweetArray[i] === "happy" || tweetArray[i] === "excited" || 
@@ -187,14 +185,14 @@
     bdy = document.getElementById('tweets'); // Gets div
     /* container will contain div for tweetPic and tweet */
     container = document.createElement('span');
-    containerWidth = 300;
+    containerWidth = 450;
     containerHeight = 120;
 
     tweetContainer = document.createElement('span');
     picContainer = document.createElement('span');
     picture = document.createElement('img');
-    var picHeight = 48;
-    var picWidth = 48;
+    var picHeight = 114;
+    var picWidth = 120;
    
     /* Generate random x and y coordinates */
     var fitsInScreen = false;
@@ -202,8 +200,8 @@
       x = Math.round(Math.random()*(screenX));
       y = Math.round(Math.random()*(screenY));
       if ((x < screenX - containerWidth) && (y < screenY - containerHeight)) {
-        if ((x + containerWidth < videoPosition.left || x + containerWidth > videoPosition.left +VIDEOWIDTH) && 
-            (y + containerHeight < videoPosition.top || y + containerHeight > videoPosition.top +VIDEOHEIGHT))
+        //if ((x + containerWidth < videoPosition.left || x + containerWidth > videoPosition.left +VIDEOWIDTH) && 
+            //(y + containerHeight < videoPosition.top || y + containerHeight > videoPosition.top +VIDEOHEIGHT))
             fitsInScreen = true;
       }
     }
@@ -234,6 +232,9 @@
                     'width' : containerWidth + 'px', 
                     'height' : containerHeight + 'px', 
                     'background-color' : colours[index],
+                    'border-radius': '15px',
+                    '-moz-border-radius': '10px',
+                    '-webkit-border-radius': '10px',
                     'z-index' : '-1'});
 
     /* Set attributes of the picture container */
@@ -244,6 +245,11 @@
                     'padding-left': '3px',
                     'padding-top' : '3px'});
     /* Should picContainer have a z-index = 0? */
+
+    $(picture).css({'border-radius': '15px',
+                    '-moz-border-radius': '10px',
+                    '-webkit-border-radius': '10px',
+                    'z-index' : '-1'});
 
     picture.src = tweetToPrint.tweetPic;
     picture.width = picWidth;
@@ -356,16 +362,22 @@
   
 // Call ready event when DOM is loaded
 addEventListener('DOMContentLoaded', function(){ 
-   
-  setTimeout(function() {
-    $.getJSON('http://api.flickr.com/services/feeds/photos_public.gne?tags=happy&lang=en-us&format=json&jsoncallback=?',null, function(data){ flickrCallback(data, "happy");});
-    $.getJSON('http://api.flickr.com/services/feeds/photos_public.gne?tags=sad&lang=en-us&format=json&jsoncallback=?',null, function(data){ flickrCallback(data, "sad");});
-    $.getJSON('http://api.flickr.com/services/feeds/photos_public.gne?tags=angry&lang=en-us&format=json&jsoncallback=?',null, function(data){ flickrCallback(data, "angry");});
-  }, 1000);
+
+  $.getJSON('http://api.flickr.com/services/feeds/photos_public.gne?tags=happy&lang=en-us&format=json&jsoncallback=?',null, function(data){ flickrCallback(data, "happy");
+    $.getJSON('http://api.flickr.com/services/feeds/photos_public.gne?tags=sad&lang=en-us&format=json&jsoncallback=?',null, function(data){ flickrCallback(data, "sad");
+      $.getJSON('http://api.flickr.com/services/feeds/photos_public.gne?tags=angry&lang=en-us&format=json&jsoncallback=?',null, function(data){ flickrCallback(data, "angry");
+        //document.getElementById("happySong").play();
+        playVideo();
+      });
+    });
+  });
+  getTwitter();
+  twitterInterval = setInterval(getTwitter, (DURATION *3)*1000);
   init();
- twitterInterval = setInterval(getTwitter, (DURATION *3)*1000);
- setTimeout(playVideo, 10000);
- setTimeout(function() { document.getElementById("happySong").play()}, 10000);
+ //setTimeout(playVideo, 10000);
+ //playVideo();
+  document.getElementById("happySong").play();
+ //setTimeout(function() { document.getElementById("happySong").play()}, 10000);
 }, false);
 window.onresize = function (){
     videoPosition = $("#videoDiv").position();
