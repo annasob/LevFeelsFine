@@ -8,15 +8,12 @@
   var DEFAULTEMT = "happy";
   var VIDEOHEIGHT = 270;
   var VIDEOWIDTH = 480;
-  var searchTerm = "";
-  var twitterData  = "@StephenAtHome"; //"#LevFeels";
+  var twitterData  = "newTwitter";//"LevFeels";
   var emotion = "happy";
   var screenX, screenY, videoPosition;
   var emotionsArray = new Array("angry","sad","happy");
   var iterator = 0;
-  var tweetCount = 1;
   var playingVideo = false;
-  var counter
   var twitterInterval,twitterInterval2, videoInterval, videoFunctionInterval;
   // Each emotion array	will hold URLs to start, then downloaded Images	after we get them all.
   var flickr = {
@@ -55,8 +52,6 @@
     videoPosition = $("#videoDiv").position();
   };
     
-  
-
   var flickrCallback = function(o, emt) {
     for (var i in o.items) {
       // Emotion arrays	start by holding URLs, we convert them to Images later.
@@ -108,11 +103,12 @@
   };
   var getTwitter = function getTwitter(){
     /* Get tweets from twitter */
-    $.getJSON('http://search.twitter.com/search.json?q=%23' + emotion + '&callback=?',
+    $.getJSON('http://search.twitter.com/search.json?q=%23' + twitterData + '&callback=?',
         null, function(data) {
 
       datalength = data.results.length;
-      //datalength = 4;
+      /* Will contain concatenation of all tweets */
+      var tweet = "";
 
       /* Store tweets, twitterIds, twitter user pics, and tweet ID's 
         in a JSON object/array */
@@ -126,28 +122,76 @@
                             "tweet" : data.results[i].text, 
                             "twitterId" : data.results[i].from_user,
                             "id" : data.results[i].id });
+          // add to the tweet string
+          tweet += data.results[i].text +" ";
         }
+      }
+      
+      /* Declare var happy, sad, angry, and neutral, and get a count of how 
+        often each words pertaining to these emotions are mentioned */
+      var happy = 0;
+      var sad = 0;
+      var angry = 0;
+      var neutral = 0;         //For posts that are objective (ie. to links)
+      var tweetArray = tweet.split(' ');
+      var internetRegex = /http:\/\/*/;   //Regex for the start of a url
+
+      for (i = 0; i < tweetArray.length; i++ ) {
+        if (tweetArray[i] === "happy" || tweetArray[i] === "excited" || 
+            tweetArray[i] === "woot" || tweetArray[i] === ":)" || 
+            tweetArray[i] === "wow" || tweetArray[i] === "awesome" ||
+            tweetArray[i] === "(:" || tweetArray[i] === "yay" ||
+            tweetArray[i] === ":D" || tweetArray[i] === "=)" ||
+            tweetArray[i] === "friday" || tweetArray[i] === "love" || tweetArray[i] === "like") { 
+              ++happy; 
+        }
+        else if (tweetArray[i] === "sad" || tweetArray[i] === ":(" ||
+                tweetArray[i] === "bummed" || tweetArray[i] === "disappointed" ||
+                tweetArray[i] === "sucks" || tweetArray[i] === ":'(" ||
+                tweetArray[i] === "rip"  || tweetArray[i] === "r.i.p." || 
+                tweetArray[i] === "died" || tweetArray[i] === "dead" || tweetArray[i] === "want") { 
+              ++sad; 
+        }
+        else if (tweetArray[i] === "angry" || tweetArray[i] === "pissed" ||
+                tweetArray[i] === "fucked" || tweetArray[i] === "hell" ||
+                tweetArray[i] === "stinks" || tweetArray[i] === "upset" ||
+                tweetArray[i] === "dammit" ||tweetArray[i] === "crud" ||
+                tweetArray[i] === "damn" || tweetArray[i] === ":@" || tweetArray[i] === "hate") { 
+              ++angry; 
+        }
+      } //end for-loop
+
+      if (happy >= sad && happy >= angry) {
+        emotion = "happy";
+       // alert("changing emotion to happy");
+      }
+      else if (sad >= happy && sad >= angry) {
+        emotion = "sad";
+       // alert("changing emotion to sad");
+      }
+      else if (angry >= sad && angry >= happy) {
+        emotion = "angry";
+       // alert("changing emotion to angry");
       }
       nextTweetOrNone();
     });    
   };
   var nextTweetOrNone = function () {
-    if (!jsonTweets.length) {
+    if (jsonTweets.length === 0) {
       // get new tweets... shouldnt be used because getTwitter() is on interval
       getTwitter(); //"Activate" if page should be on an infinite loop
       //return; /* "Activate" if only datalength amount tweets will been parsed */
-    }
+    } 
     setTimeout(printTweet, 5000);
   };
 
   var printTweet = function() {
     /* pop tweets from the jsonTweets object */ 
     var tweetToPrint = jsonTweets.pop();
-
+    if (!tweetToPrint) return;
+    
     /* Declare containers */
     bdy = document.getElementById('tweets'); // Gets div
-    tweetCount ++;
-    if (tweetCount >4) { tweetCount = 1; }
     /* container will contain div for tweetPic and tweet */
     container = document.createElement('span');
     containerWidth = 300;
@@ -172,16 +216,16 @@
     }
 
     /* Declare colours for each of the hashtags */
-    if (emotion == "angry") {
+    if (emotion === "angry") {
       var colours = ["#EE9A49", "#CC3232", "#B22222", "#330000", "#8B7D7B",
                       "#EED5D2", "#FF2400", "#FF6347", "#5E2612", "#E3170D"];
     }
-    else if (emotion == "sad") {
+    else if (emotion === "sad") {
       var colours = ["#525C65", "#4D4DFF", "#4D6FAC", "#42526C", "#7171C6",
                       "#8968CD", "#104E8B", "#694489", "#0147FA", "#2F2F4F"];
       
     }
-    else if (emotion == "happy") {
+    else if (emotion === "happy") {
       var colours = ["#698B22", "#FFE600", "#A2C93A", "#FFA824", "#FF8600",
                       "#B13E0F", "#FF3030", "#00B2EE", "#499DF5", "#8968CD"];
     }
@@ -196,7 +240,7 @@
                     'left' : x +'px', 
                     'width' : containerWidth + 'px', 
                     'height' : containerHeight + 'px', 
-                    'colour' : colours[index],
+                    'background-color' : colours[index],
                     'z-index' : '-1'});
 
     /* Set attributes of the picture container */
@@ -207,22 +251,22 @@
     /* Should picContainer have a z-index = 0? */
 
     picture.src = tweetToPrint.tweetPic;
-    picture.style.width = 48;
-    picture.style.height = 48;
+    picture.width = picWidth;
+    picture.height = picHeight;
     picContainer.appendChild(picture);
     container.appendChild(picContainer);
 
     /* Set attributes of tweetContainer container */
     //$(tweetContainer).css({ });
     
-    text = document.createTextNode( "@"+ tweetToPrint.twitterId + ": " + tweetToPrint.tweet);
+    text = document.createTextNode( "@"+ tweetToPrint.twitterId + ": " + tweetToPrint.tweet.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&').replace(/&quote;/g, '"'));
     tweetContainer.appendChild(text);
     container.appendChild(tweetContainer);
 
     /* Fade in to screen */
     $(container).fadeIn(3000);
     /* Reduce opacity */
-    $(container).fadeTo(1000, 0.30);
+    $(container).fadeTo(1000, 0.15);
 
     bdy.appendChild(container);
 
@@ -281,7 +325,7 @@
             //get the image from flickr array
             image.src = flickr[emotion].images[flickr[emotion].position].src;
             flickr[emotion].position ++;
-            if (flickr[emotion].position >= flickr[emotion].images.length) { alert("in here"); flickr[emotion].position = 0; }            
+            if (flickr[emotion].position >= flickr[emotion].images.length) { flickr[emotion].position = 0; }            
           }
           if (video.currentTime <= DURATION) { // draw frame of first "face" video
             canvasCtx.drawImage(video, 0, 0, video.width, video.height);
@@ -328,14 +372,13 @@ addEventListener('DOMContentLoaded', function(){
     $.getJSON('http://api.flickr.com/services/feeds/photos_public.gne?tags=angry&lang=en-us&format=json&jsoncallback=?',null, function(data){ flickrCallback(data, "angry");});
   }, 1000);
   init();
- twitterInterval2 = setInterval(getEmotion, (DURATION *3)*1000);
+ //twitterInterval2 = setInterval(getEmotion, (DURATION *3)*1000);
  twitterInterval = setInterval(getTwitter, (DURATION *3)*1000);
  setTimeout(playVideo, 10000);
  setTimeout(function() { document.getElementById("happySong").play()}, 10000);
 }, false);
 window.onresize = function (){
     videoPosition = $("#videoDiv").position();
-    alert("new position" +videoPosition);
 };
 </script>
 </head>
