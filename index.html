@@ -120,8 +120,8 @@
         if (data.results[i].text) {
           jsonTweets.push({ "tweetPic" : data.results[i].profile_image_url, 
                             "tweet" : data.results[i].text, 
-                            "twitterId" : data.results[i].from_user,
-                            "id" : data.results[i].id });
+                            "twitterId" : data.results[i].from_user
+                         });
           // add to the tweet string
           tweet += data.results[i].text +" ";
         }
@@ -132,9 +132,8 @@
       var happy = 0;
       var sad = 0;
       var angry = 0;
-      var neutral = 0;         //For posts that are objective (ie. to links)
       var tweetArray = tweet.split(' ');
-      var internetRegex = /http:\/\/*/;   //Regex for the start of a url
+      var internetRegex = /http:\/\/*/;   //Regex for the start of a url*/
 
       for (i = 0; i < tweetArray.length; i++ ) {
         if (tweetArray[i] === "happy" || tweetArray[i] === "excited" || 
@@ -194,14 +193,14 @@
     bdy = document.getElementById('tweets'); // Gets div
     /* container will contain div for tweetPic and tweet */
     container = document.createElement('span');
-    containerWidth = 300;
+    containerWidth = 450;
     containerHeight = 120;
 
     tweetContainer = document.createElement('span');
     picContainer = document.createElement('span');
     picture = document.createElement('img');
-    var picHeight = 48;
-    var picWidth = 48;
+    var picHeight = 120;
+    var picWidth = 120;
    
     /* Generate random x and y coordinates */
     var fitsInScreen = false;
@@ -241,6 +240,9 @@
                     'width' : containerWidth + 'px', 
                     'height' : containerHeight + 'px', 
                     'background-color' : colours[index],
+                    'border-radius': '15px',
+                    '-moz-border-radius': '10px',
+                    '-webkit-border-radius': '10px',
                     'z-index' : '-1'});
 
     /* Set attributes of the picture container */
@@ -249,6 +251,11 @@
                     'width' : picWidth + 'px',
                     'height' : picHeight + 'px'});
     /* Should picContainer have a z-index = 0? */
+
+    $(picture).css({'border-radius': '15px',
+                    '-moz-border-radius': '10px',
+                    '-webkit-border-radius': '10px',
+                    'z-index' : '-1'});
 
     picture.src = tweetToPrint.tweetPic;
     picture.width = picWidth;
