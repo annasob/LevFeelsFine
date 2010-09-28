@@ -17,7 +17,7 @@
   var DEFAULTEMT = "happy";
   var VIDEOHEIGHT = 270;
   var VIDEOWIDTH = 480;
-  var twitterData  = "newTwitter"; //"LevFeels"
+  var twitterData  = "LevFeels";
   var emotion = "happy";
   var screenX, screenY, videoPosition;
   var playingVideo = false;
@@ -128,7 +128,13 @@
           if ($.inArray(tweetText, allTweets) === -1) {
             tweet += data.results[i].text +" ";
             allTweets.push(tweetText); 
-            setTimeout(function() { printTweet(tweetObject); }, 15000 *i);
+            setTimeout(
+              (function(aTweet) {
+                var tweet = aTweet;
+                return function() { 
+                  printTweet(tweet);
+                };
+              })(tweetObject), 1500 *i);
           }
           // add to the tweet string
           tweet += data.results[i].text +" ";
