@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
+<style type="text/css">
+  .transparent
+  {
+    
+    background: rgb(255,0,0);
+    width: "480px";
+    height: "270px"; 
+  }
+</style>
 <script src="http://code.jquery.com/jquery-latest.min.js"></script>
 
 <script>
@@ -118,7 +127,7 @@
           // only use new tweets to determine emotion
           if ($.inArray(tweetText, allTweets) === -1) {
             tweet += data.results[i].text +" ";
-            setTimeout(function() { allTweets.push(tweetText); }, 5000);
+            allTweets.push(tweetText); 
             setTimeout(function() { printTweet(tweetObject); }, 15000 *i);
           }
           // add to the tweet string
