@@ -12,8 +12,9 @@
   var emotion = "happy";
   var screenX, screenY, videoPosition;
   var playingVideo = false;
-  var twitterInterval, videoInterval;
+  var videoInterval;
   var allTweets = [];
+  var unprocessedTwitter =[];
   var attributionData = {
     "happy" : {"img" : "", "info" : ""},
     "sad" : {"img" : "", "info" : ""},
@@ -99,87 +100,99 @@
     img.src = url;
   }
 
+  var determineEmotion = function(concatTweet) {
+    /* Declare var happy, sad, angry, and neutral, and get a count of how 
+       often each words pertaining to these emotions are mentioned */
+    var happy = 0;
+    var sad = 0;
+    var angry = 0;
+    
+    var tweetArray = concatTweet.split(' ');
+    var internetRegex = /http:\/\/*/;   //Regex for the start of a url*/
+
+    for (i = 0; i < tweetArray.length; i++ ) {
+      if (tweetArray[i] === "happy" || tweetArray[i] === "excited" || 
+          tweetArray[i] === "woot" || tweetArray[i] === ":)" || 
+          tweetArray[i] === "wow" || tweetArray[i] === "awesome" ||
+          tweetArray[i] === "(:" || tweetArray[i] === "yay" ||
+          tweetArray[i] === ":D" || tweetArray[i] === "=)" ||
+          tweetArray[i] === "friday" || tweetArray[i] === "love" || tweetArray[i] === "like") { 
+            ++happy; 
+      }
+      else if (tweetArray[i] === "sad" || tweetArray[i] === ":(" ||
+              tweetArray[i] === "bummed" || tweetArray[i] === "disappointed" ||
+              tweetArray[i] === "sucks" || tweetArray[i] === ":'(" ||
+              tweetArray[i] === "rip"  || tweetArray[i] === "r.i.p." || 
+              tweetArray[i] === "died" || tweetArray[i] === "dead" || tweetArray[i] === "want") { 
+            ++sad; 
+      }
+      else if (tweetArray[i] === "angry" || tweetArray[i] === "pissed" ||
+              tweetArray[i] === "fucked" || tweetArray[i] === "hell" ||
+              tweetArray[i] === "stinks" || tweetArray[i] === "upset" ||
+              tweetArray[i] === "dammit" ||tweetArray[i] === "crud" ||
+              tweetArray[i] === "damn" || tweetArray[i] === ":@" || tweetArray[i] === "hate") { 
+            ++angry; 
+      }
+    } //end for-loop
+
+    if (happy >= sad && happy >= angry) {
+      emotion = "happy";
+    }
+    else if (sad >= happy && sad >= angry) {
+      emotion = "sad";
+    }
+    else if (angry >= sad && angry >= happy) {
+      emotion = "angry";
+    }
+  };
+  
+  var processTweets = function() {
+    var tweetObject = "";
+    var oneTweet = unprocessedTwitter.pop();
+    if (!oneTweet) { 
+      getTwitter();
+      return; 
+    }
+    if (!oneTweet.text) return;
+      
+    tweetObject = { "tweetPic" : oneTweet.profile_image_url, 
+                    "tweet" : oneTweet.text,
+                    "twitterId" : oneTweet.from_user};
+        // only add new tweets to the array so we dont reprint old tweets
+        // only use new tweets to determine emotion
+        
+        //setTimeout(
+          //(function(aTweet) {
+          //  var tweet = aTweet;
+          //  return function() { 
+          //    printTweet(tweet);
+          //  };
+          //})(tweetObject), 1500);
+    printTweet(tweetObject);
+    setTimeout(processTweets, 5000);
+  };
   var getTwitter = function getTwitter(){
     /* Get tweets from twitter */
     $.getJSON('http://search.twitter.com/search.json?q=%23' + twitterData + '&callback=?',
         null, function(data) {
-
-      /* Will contain concatenation of all tweets */
-      var tweet = "";
-      var tweetObject = "";
-      /* Store tweets, twitterIds, twitter user pics, and tweet ID's 
-        in a JSON object/array */
-      var tweetObject = "";
-      var tweetText = "";
-      /* Iterate through JSON object and push Twitter pictures and tweets
-       onto another JSON object */
-      for (i = 0; i < data.results.length; i++) {
-        if (data.results[i].text) {
-          tweetText = data.results[i].text;
-          tweetObject = { "tweetPic" : data.results[i].profile_image_url, 
-                            "tweet" : data.results[i].text,
-                            "twitterId" : data.results[i].from_user};
-          // only add new tweets to the array so we dont reprint old tweets
-          // only use new tweets to determine emotion
-          if ($.inArray(tweetText, allTweets) === -1) {
-            tweet += data.results[i].text +" ";
-            allTweets.push(tweetText); 
-            setTimeout(
-              (function(aTweet, i) {
-                var tweet = aTweet;
-                return function() { 
-                  printTweet(tweet);
-                };
-              })(tweetObject), 5000 *i);
+          var tweetText = "";
+          // only do something when data is received
+          if( data.results.length ) {
+            
+            for( var i =0 ; i < data.results.length; i++)
+            {
+                if ($.inArray(data.results[i].text, allTweets) === -1) {
+                  tweetText += data.results[i].text + " ";
+                  allTweets.push(data.results[i].text); 
+                  unprocessedTwitter.unshift(data.results[i]);
+                }
+            }
+            determineEmotion(tweetText);
+            processTweets();
           }
-        }
-      }
-      
-      /* Declare var happy, sad, angry, and neutral, and get a count of how 
-        often each words pertaining to these emotions are mentioned */
-      var happy = 0;
-      var sad = 0;
-      var angry = 0;
-      var tweetArray = tweet.split(' ');
-      var internetRegex = /http:\/\/*/;   //Regex for the start of a url*/
-
-      for (i = 0; i < tweetArray.length; i++ ) {
-        if (tweetArray[i] === "happy" || tweetArray[i] === "excited" || 
-            tweetArray[i] === "woot" || tweetArray[i] === ":)" || 
-            tweetArray[i] === "wow" || tweetArray[i] === "awesome" ||
-            tweetArray[i] === "(:" || tweetArray[i] === "yay" ||
-            tweetArray[i] === ":D" || tweetArray[i] === "=)" ||
-            tweetArray[i] === "friday" || tweetArray[i] === "love" || tweetArray[i] === "like") { 
-              ++happy; 
-        }
-        else if (tweetArray[i] === "sad" || tweetArray[i] === ":(" ||
-                tweetArray[i] === "bummed" || tweetArray[i] === "disappointed" ||
-                tweetArray[i] === "sucks" || tweetArray[i] === ":'(" ||
-                tweetArray[i] === "rip"  || tweetArray[i] === "r.i.p." || 
-                tweetArray[i] === "died" || tweetArray[i] === "dead" || tweetArray[i] === "want") { 
-              ++sad; 
-        }
-        else if (tweetArray[i] === "angry" || tweetArray[i] === "pissed" ||
-                tweetArray[i] === "fucked" || tweetArray[i] === "hell" ||
-                tweetArray[i] === "stinks" || tweetArray[i] === "upset" ||
-                tweetArray[i] === "dammit" ||tweetArray[i] === "crud" ||
-                tweetArray[i] === "damn" || tweetArray[i] === ":@" || tweetArray[i] === "hate") { 
-              ++angry; 
-        }
-      } //end for-loop
-
-      if (happy >= sad && happy >= angry) {
-        emotion = "happy";
-      }
-      else if (sad >= happy && sad >= angry) {
-        emotion = "sad";
-      }
-      else if (angry >= sad && angry >= happy) {
-        emotion = "angry";
-      }
+       
     });    
   };
-  
   var printTweet = function(tweetToPrint) {
     /* Declare containers */
     bdy = document.getElementById('tweets'); // Gets div
@@ -378,7 +391,6 @@ document.getElementById("angrySong").muted = true;
     });
   });
   getTwitter();
-  twitterInterval = setInterval(getTwitter, (DURATION *3)*1000);
   init();
 }, false);
 
@@ -444,9 +456,9 @@ function toggleMute() {
 
 <div style="display:none;background-color:#000;z-index:1;border-radius:10px;-moz-border-radius: 10px;-webkit-border-radius: 10px;position:fixed;left:50%;top:50%;margin:-135px 0 0 -240px;border-style:solid;border-width:15px;width:480px;height:270px;" id="attribution">
   <div style="position:relative;">
-    <audio style="display:none;width:480px;position:absolute;top:225px;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/sad.ogg" id="sadSong" controls loop></audio>
-    <audio style="display:none;width:480px;position:absolute;top:225px;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/happy.ogg" id="happySong" controls loop></audio>
-    <audio style="display:none;width:480px;position:absolute;top:225px;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/angry.ogg" id="angrySong" controls loop></audio>
+    <audio style="display:none;width:480px;position:absolute;top:225px;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/sad.ogg" id="sadSong" controls loop="loop"></audio>
+    <audio style="display:none;width:480px;position:absolute;top:225px;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/happy.ogg" id="happySong" controls loop="loop"></audio>
+    <audio style="display:none;width:480px;position:absolute;top:225px;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/angry.ogg" id="angrySong" controls loop="loop"></audio>
     <a href="javascript:toggleMute();" style="color:#FFF;position:absolute;top:215px;left:75%;" id="muted">unmute music</a>
     <p style="color:#FFF;position:absolute;top:200px;left:0px;" id="textattribution">This song's copyright information.</p>
     <p style="color:#FFF;position:absolute;top:240px;left:90px;" id="textattribution">default attribution info</p>
