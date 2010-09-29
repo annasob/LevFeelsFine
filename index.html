@@ -130,7 +130,7 @@
                 return function() { 
                   printTweet(tweet);
                 };
-              })(tweetObject), 50 *i);
+              })(tweetObject), 5000 *i);
           }
         }
       }
@@ -269,9 +269,9 @@
     container.appendChild(tweetContainer);
 
     /* Fade in to screen */
-    $(container).fadeIn(3000);
+    $(container).fadeIn(10000);
     /* Reduce opacity */
-    $(container).fadeTo(1000, 0.15);
+    $(container).fadeTo(10000, 0.15);
 
     bdy.appendChild(container);
 
