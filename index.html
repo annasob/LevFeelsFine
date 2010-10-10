@@ -14,6 +14,7 @@
   var allTweets = [];
   var unprocessedTwitter =[];
   var loaded = 0;
+  var vi;
   // Each emotion array	will hold URLs to start, then downloaded Images	after we get them all.
   var flickr = {
     happy: {images: [], position: 0},
@@ -44,7 +45,7 @@
     } else { audio.currentTime = 0; audio.pause(); }
   }
       
-  function init() {
+  function initLev() {
     /* Get the screen size */
     screenX = window.innerWidth;
     screenY = window.innerHeight;
@@ -52,6 +53,14 @@
     document.getElementById("sadSong").addEventListener("timeupdate", function(){songTimeUpdate("sadSong")}, false); 
     document.getElementById("happySong").addEventListener("timeupdate", function(){songTimeUpdate("happySong")}, false); 
     document.getElementById("angrySong").addEventListener("timeupdate", function(){songTimeUpdate("angrySong")}, false); 
+    vi = setInterval(function() {
+      if (loaded >= 12 && emotion != "") {
+        playVideo();
+        document.getElementById(emotion+"Song").play();
+        clearInterval(vi);
+      }
+    }, 10);
+    getTwitter();
   }
   // timeupdate listener used to set the song back to the beginning if its a second before ending
   function songTimeUpdate(song) {
@@ -383,29 +392,30 @@ addEventListener('DOMContentLoaded', function(){
   });
   $.getJSON('http://api.flickr.com/services/feeds/photos_public.gne?tags=sad&lang=en-us&format=json&jsoncallback=?',null, function(data){ flickrCallback(data, "sad");
   });
-  vi = setInterval(function() {
-    if (loaded >= 12) {
-      playVideo();
-      document.getElementById(emotion+"Song").play();
-      clearInterval(vi);
-    }
-  }, 10);
-  getTwitter();
-  init();
+  pjsBox();
 }, false);
 
 window.onresize = function (){
     videoPosition = $("#videoDiv").position();
 };
 
+function pjsBox() {
+  //use sancho's PJSBox Bookmarklet
+   var e=document.createElement('script');
+   e.setAttribute('type','text/javascript');
+   e.setAttribute('src','pjsbox.js');
+   document.body.appendChild(e);
+
+}
 </script>
 </head>
+<body>
   <div id="tweets"></div>
   <video src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/videos/sad.ogg" style="display:none;" width="480" height="270" id="sad"></video>
   <video src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/videos/happy.ogg" style="display:none;" width="480" height="270" id="happy"></video>
   <video src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/videos/angry.ogg" style="display:none;" width="480" height="270" id="angry"></video>
   <video src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/videos/middle.ogg" style="display:none;" width="480" height="270" id="middle"></video>
-  
+
   <img style="display:none;" id="image" />
 
   <canvas style="z-index:2;display:none;border-radius:10px;-moz-border-radius: 10px;-webkit-border-radius: 10px;position:fixed;left:50%;top:50%;margin:-135px 0 0 -240px;border-style:solid;border-width:15px;" id="canvas" width="480" height="270" ></canvas>
@@ -414,6 +424,6 @@ window.onresize = function (){
   <audio style="display:none;width:480px;position:absolute;top:225px;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/sad.ogg" id="sadSong" loop='loop' controls='control'></audio>
   <audio style="display:none;width:480px;position:absolute;top:225px;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/happy.ogg" id="happySong" loop='loop' controls='control'></audio>
   <audio style="display:none;width:480px;position:absolute;top:225px;" src="http://scotland.proximity.on.ca/sdowne/LevFeelsFine/music/angry.ogg" id="angrySong" loop='loop' controls='control'></audio>
-
+</body>
 </html>
 
